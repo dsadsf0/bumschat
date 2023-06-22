@@ -5,6 +5,8 @@ export type TypedRequestBody<T> = Request<object, object, T, object>;
 export type TypedRequestParams<T> = Request<T, object, object, object>;
 
 export type TypedRequestBodyQuery<T, U> = Request<object, object, T, U>;
+export type TypedRequestParamsBody<T, U> = Request<T, object, U, object>;
+
 
 export type TypedRequestParamsBodyQuery<Params, ReqB, ReqQ> = Request<Params, object, ReqB, ReqQ>;
 
