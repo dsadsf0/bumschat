@@ -1,0 +1,20 @@
+.input {
+  padding: 8px 12px;
+  border: 1px solid var(--main-text-color);
+  border-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition-duration: .2s;
+
+  &:hover,
+  &:focus {
+    border-color: var(--main-text-color-hover);
+  }
+
+  &_big {
+    padding: 12px 16px;
+    font-size: 18px;
+    min-width: 300px;
+  }
+}
