@@ -2,11 +2,17 @@ import { NextFunction, Response } from 'express';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import bcrypt from 'bcrypt';
-import { TypedDeleteRequestBody, TypedLoginCheckNameRequestBody, TypedLoginRequestBody, TypedSignupRequestBody } from '../types/express/AuthRequest';
-import * as uuid from 'uuid';
+import { 
+    TypedDeleteRequestBody, 
+    TypedLoginCheckNameRequestParams, 
+    TypedLoginRequestBody, 
+    TypedSignupRequestBody 
+} from '../types/express/AuthRequest';
 import UserService from '../services/UserService';
 import COOKIE_LIFE_TIME from '../constants/cookie';
 import qrService from '../fileServices/qrService';
+import shortPassGen from '../utils/shortPassGen';
+import { AUTH_TOKEN_SALT, PASS_SALT } from '../constants/salts';
 
 class AuthController {
     static async signup (req: TypedSignupRequestBody, res: Response, next: NextFunction) {
@@ -17,7 +23,6 @@ class AuthController {
             }
 
             const user = await UserService.getUserByUsername(username)
-
             if (user) {
                 return res.status(400).json('User with this username already exist');
             }
@@ -25,19 +30,19 @@ class AuthController {
             const secret = speakeasy.generateSecret({
                 name: `Bums Chat: ${username}`,
             })
+
             const createdAt = Date.now();
 
-            // как секретный ключ возвращать createdAt
-            const recoverySecret = await bcrypt.hash(username + createdAt, 5);
+            // возвращать recoveryPass как секретный ключ который пользователь должен запомнить
+            const recoveryPass = shortPassGen();
+            const recoverySecret = await bcrypt.hash(recoveryPass, PASS_SALT);
 
             const qrData = await qrcode.toDataURL(secret.otpauth_url);
 
-            // token что бы вылитало с аккаунта
-            // const authToken = await bcrypt.hash(username, createdAt);
-            const authToken = uuid.v4();
+            // token что бы не вылитало с аккаунта
+            const authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT);
 
             const treatedQRData = qrData.replace(/^data:image\/png+;base64,/, "").replace(/ /g, '+');
-
             const fileName = qrService.createQrImg(treatedQRData)
 
             const newUser = await UserService.createUser({
@@ -59,7 +64,7 @@ class AuthController {
         }
     }
 
-    static async loginCheck (req: TypedLoginCheckNameRequestBody, res: Response, next: NextFunction) {
+    static async loginCheck(req: TypedLoginCheckNameRequestParams, res: Response, next: NextFunction) {
         try {
             const { username } = req.params;
 
