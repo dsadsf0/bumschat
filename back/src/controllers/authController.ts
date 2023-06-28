@@ -1,147 +1,154 @@
-import { NextFunction, Response } from 'express';
+import { NextFunction, Response, Request } from 'express';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import bcrypt from 'bcrypt';
 import { 
-    TypedDeleteRequestBody, 
-    TypedLoginCheckNameRequestParams, 
-    TypedLoginRequestBody, 
-    TypedSignupRequestBody 
+	TypedDeleteRequestParams, 
+	TypedLoginCheckNameRequestParams, 
+	TypedLoginRequestBody, 
+	TypedSignupRequestBody 
 } from '../types/express/AuthRequest';
 import UserService from '../services/UserService';
 import COOKIE_LIFE_TIME from '../constants/cookie';
 import qrService from '../fileServices/qrService';
 import shortPassGen from '../utils/shortPassGen';
-import { AUTH_TOKEN_SALT, PASS_SALT } from '../constants/salts';
+import { AUTH_TOKEN_SALT_ROUNDS, PASS_SALT_ROUNDS } from '../constants/salts';
 
 class AuthController {
-    static async signup (req: TypedSignupRequestBody, res: Response, next: NextFunction) {
-        try {
-            const { username } = req.body;
-            if (!username) {
-                return res.status(400).json('No username');
-            }
 
-            const user = await UserService.getUserByUsername(username)
-            if (user) {
-                return res.status(400).json('User with this username already exist');
-            }
+	static async signup(req: TypedSignupRequestBody, res: Response, next: NextFunction) {
+		try {
+			const { username } = req.body;
+			if (!username) {
+				return res.status(400).json('No username');
+			}
 
-            const secret = speakeasy.generateSecret({
-                name: `Bums Chat: ${username}`,
-            })
+			const user = await UserService.getUserByUsername(username)
+			if (user) {
+				return res.status(400).json('User with this username already exist');
+			}
 
-            // token что бы не вылитало с аккаунта
-            const authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT);
+			const secret = speakeasy.generateSecret({
+				name: `Bums Chat: ${username}`,
+			})
 
-            // возвращать recoveryPass как секретный ключ который пользователь должен запомнить
-            const recoveryPass = shortPassGen();
-            const recoverySecret = await bcrypt.hash(recoveryPass, PASS_SALT);
-            
-            const qrData = await qrcode.toDataURL(secret.otpauth_url);
-            const treatedQRData = qrData.replace(/^data:image\/png+;base64,/, '').replace(/ /g, '+');
-            const fileName = qrService.createQrImg(treatedQRData)
+			const authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT_ROUNDS);
 
-            const createdAt = Date.now();
+			const recoveryPass = shortPassGen();
+			const recoverySecret = await bcrypt.hash(recoveryPass, PASS_SALT_ROUNDS);
+			
+			const qrData = await qrcode.toDataURL(secret.otpauth_url);
+			const treatedQRData = qrData.replace(/^data:image\/png+;base64,/, '').replace(/ /g, '+');
+			const fileName = qrService.createQrImg(treatedQRData);
 
-            const newUser = await UserService.createUser({
-                username,
-                secretBase32: secret.base32,
-                recoverySecret,
-                softDeleted: false,
-                createdAt,
-                authToken,
-                qrImg: fileName
-            });
+			const createdAt = Date.now();
 
-            // secure: true means https only
-            res.cookie('authToken', authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'strict' })
-            return res.json({
-                user: newUser, 
-                qrImg: fileName, 
-                recoveryPass
-            });
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json('Server Error');
-        }
-    }
+			const newUser = await UserService.createUser({
+				username,
+				secretBase32: secret.base32,
+				recoverySecret,
+				softDeleted: false,
+				createdAt,
+				authToken,
+				qrImg: fileName,
+			});
 
-    static async loginCheck(req: TypedLoginCheckNameRequestParams, res: Response, next: NextFunction) {
-        try {
-            const { username } = req.params;
+			res.cookie('authToken', authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
 
-            if (!username) {
-                return res.status(400).json('No username');
-            }
+			return res.status(200).json({
+				user: newUser, 
+				qrImg: fileName,
+				recoveryPass,
+			});
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json('Server creating user Error');
+		}
+	}
 
-            const user = await UserService.getUserByUsername(username)
+	static async loginCheck(req: TypedLoginCheckNameRequestParams, res: Response, next: NextFunction) {
+		try {
+			const { username } = req.params;
 
-            if (!user) {
-                return res.status(401).json('This user does not exist');
-            }
+			if (!username) {
+				return res.status(400).json('No username');
+			}
 
-            return res.json('ok');
-        } catch (error) {
-            console.log(error);            
-            return res.status(500).json('Server Error');
-        }
-    }
+			const user = await UserService.getUserByUsername(username);
 
-    static async login (req: TypedLoginRequestBody, res: Response, next: NextFunction) {
-        try {
-            const { username, verificationCode } = req.body;
+			if (!user) {
+				return res.status(401).json('This user does not exist');
+			}
 
-            if (!username) {
-                return res.status(400).json('No username');
-            }
+			return res.status(200).json('ok');
+		} catch (error) {
+			console.log(error);            
+			return res.status(500).json('Server username verification Error');
+		}
+	}
 
-            if (!verificationCode) {
-                return res.status(400).json('No 2FA code');
-            }
+	static async login(req: TypedLoginRequestBody, res: Response, next: NextFunction) {
+		try {
+			const { username, verificationCode } = req.body;
 
-            const user = await UserService.getUserByUsername(username)
+			if (!username) {
+				return res.status(400).json('No username');
+			}
 
-            if (!user) {
-                return res.status(401).json('This user does not exist');
-            }
+			if (!verificationCode) {
+				return res.status(400).json('No 2FA code');
+			}
 
-            const isCorrectToken = speakeasy.totp.verify({
-                secret: user.secretBase32,
-                encoding: 'base32',
-                token: verificationCode
-            })
+			const user = await UserService.getUserByUsername(username)
 
-            if (!isCorrectToken) {
-                return res.status(401).json('Not correct 2FA code');
-            }
+			if (!user) {
+				return res.status(401).json('This user does not exist');
+			}
 
-            return res.json('ok');
-        } catch (error) {
-            console.log(error);            
-            return res.status(500).json('Server Error');
-        }
-    }
+			const isCorrectToken = speakeasy.totp.verify({
+				secret: user.secretBase32,
+				encoding: 'base32',
+				token: verificationCode
+			})
 
-    static async deleteUser(req: TypedDeleteRequestBody, res: Response, next: NextFunction) {
-        try {
+			if (!isCorrectToken) {
+				return res.status(401).json('Not correct 2FA code');
+			}
 
-            // написать мидлваре для проверки ауф токена
-            // и если он верный доставать из бд юзера 
-            // и закидывать в реквест закидывать 
-            // const { } = req.user;
+			res.cookie('authToken', user.authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
 
-            //get authTiken from cookie
-            // await UserService.deleteUser()
-            // qrService.deleteQrImg()
+			const userDto = UserService.userDTO(user);
 
+			return res.status(200).json(userDto);
+		} catch (error) {
+			console.log(error);            
+			return res.status(500).json('Server Error');
+		}
+	}
 
-            return res.json('ok');
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json('Server Error');
-        }
-    }
+	static async logout(req: Request, res: Response, next: NextFunction) {
+		try {
+			res.clearCookie('authToken');
+
+			return res.status(200).json('ok');
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json('Server Error');
+		}
+	}
+
+	static async deleteUser(req: TypedDeleteRequestParams, res: Response, next: NextFunction) {
+		try {
+			const username = req.params.username;
+
+			await UserService.softDeleteUser(username);
+
+			return res.status(200).json('ok');
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json('Server Error');
+		}
+	}
 }
 
 export default AuthController
