@@ -31,19 +31,18 @@ class AuthController {
                 name: `Bums Chat: ${username}`,
             })
 
-            const createdAt = Date.now();
+            // token что бы не вылитало с аккаунта
+            const authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT);
 
             // возвращать recoveryPass как секретный ключ который пользователь должен запомнить
             const recoveryPass = shortPassGen();
             const recoverySecret = await bcrypt.hash(recoveryPass, PASS_SALT);
-
+            
             const qrData = await qrcode.toDataURL(secret.otpauth_url);
-
-            // token что бы не вылитало с аккаунта
-            const authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT);
-
-            const treatedQRData = qrData.replace(/^data:image\/png+;base64,/, "").replace(/ /g, '+');
+            const treatedQRData = qrData.replace(/^data:image\/png+;base64,/, '').replace(/ /g, '+');
             const fileName = qrService.createQrImg(treatedQRData)
+
+            const createdAt = Date.now();
 
             const newUser = await UserService.createUser({
                 username,
@@ -56,8 +55,12 @@ class AuthController {
             });
 
             // secure: true means https only
-            res.cookie('authToken', authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: true, sameSite: 'strict' })
-            return res.json(newUser);
+            res.cookie('authToken', authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'strict' })
+            return res.json({
+                user: newUser, 
+                qrImg: fileName, 
+                recoveryPass
+            });
         } catch (error) {
             console.log(error);
             return res.status(500).json('Server Error');

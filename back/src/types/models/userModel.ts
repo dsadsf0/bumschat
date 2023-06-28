@@ -1,4 +1,3 @@
-
 export interface UserInterface {
     username: string,
     // secret from speakeasy to verify code from authentificator
@@ -13,3 +12,5 @@ export interface UserInterface {
     // img with qr code
     qrImg: string
 }
+
+export type UserDTOInterface = Pick<UserInterface, 'username'>

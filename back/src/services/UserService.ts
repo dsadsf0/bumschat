@@ -1,15 +1,21 @@
 import User from '../models/UserModel'
-import { UserInterface } from './../types/models/userModel';
+import { UserInterface, UserDTOInterface } from './../types/models/userModel';
+
 
 class UserService {
-  static async createUser(user: UserInterface): Promise<Pick<UserInterface, 'username' | 'qrImg' | 'recoverySecret'>| null> {
+  static userDTO(user: UserInterface): UserDTOInterface {
+    if (!user) return null;
+    const dtoUser = {
+      username: user.username, 
+    };
+    
+    return dtoUser || null;
+  }
+
+  static async createUser(user: UserInterface): Promise<UserDTOInterface | null> {
     try {
       const newUser = await User.create(user);
-      return {
-        username: newUser.username, 
-        qrImg: newUser.qrImg, 
-        recoverySecret: newUser.recoverySecret
-      } || null;
+      return this.userDTO(newUser);
     } catch (error) {
       console.log(error);
       return null
