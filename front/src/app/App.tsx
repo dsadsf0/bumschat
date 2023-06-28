@@ -7,17 +7,15 @@ import { BrowserRouter, Route, Routes } from "react-router-dom"
 
 const App = (): JSX.Element => {
 
-  return (
-    <BrowserRouter>
-      <>
-        <Routes>
-          <Route path={mainRoutes.home} element={<Home />} />
-          <Route path={mainRoutes.login} element={<Login />} />
-          <Route path={mainRoutes.signup} element={<Signup />} />
-        </Routes>
-      </>
-    </BrowserRouter>
-  )
+	return (
+		<BrowserRouter>
+			<Routes>
+				<Route path={mainRoutes.home} element={<Home />} />
+				<Route path={mainRoutes.login} element={<Login />} />
+				<Route path={mainRoutes.signup} element={<Signup />} />
+			</Routes>
+		</BrowserRouter>
+	)
 }
 
 export default App

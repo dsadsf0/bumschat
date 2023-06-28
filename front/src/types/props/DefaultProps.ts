@@ -7,4 +7,5 @@ export interface InputPropsInterface extends DefaultPropsInterface {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  title?: string
 }
