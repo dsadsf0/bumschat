@@ -3,6 +3,7 @@ import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import bcrypt from 'bcrypt';
 import { 
+	AuthCheckedRequest,
 	TypedDeleteRequestParams, 
 	TypedLoginCheckNameRequestParams, 
 	TypedLoginRequestBody, 
@@ -15,6 +16,13 @@ import shortPassGen from '../utils/shortPassGen';
 import { AUTH_TOKEN_SALT_ROUNDS, PASS_SALT_ROUNDS } from '../constants/salts';
 
 class AuthController {
+
+	static async authTokenCheck(req: AuthCheckedRequest<Request>, res: Response, next: NextFunction) {
+		const user = req.user;
+
+		const userDto = UserService.userDTO(user)
+		return res.status(200).json(userDto);
+	}
 
 	static async signup(req: TypedSignupRequestBody, res: Response, next: NextFunction) {
 		try {
@@ -32,7 +40,10 @@ class AuthController {
 				name: `Bums Chat: ${username}`,
 			})
 
-			const authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT_ROUNDS);
+			let authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT_ROUNDS);
+			while (await UserService.getUserByAuthToken(authToken)) {
+				authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT_ROUNDS);
+			}
 
 			const recoveryPass = shortPassGen();
 			const recoverySecret = await bcrypt.hash(recoveryPass, PASS_SALT_ROUNDS);
@@ -77,7 +88,7 @@ class AuthController {
 			const user = await UserService.getUserByUsername(username);
 
 			if (!user) {
-				return res.status(401).json('This user does not exist');
+				return res.status(400).json('This user does not exist');
 			}
 
 			return res.status(200).json('ok');
@@ -112,7 +123,7 @@ class AuthController {
 			})
 
 			if (!isCorrectToken) {
-				return res.status(401).json('Not correct 2FA code');
+				return res.status(401).json('Unauthorized. Not correct 2FA code');
 			}
 
 			res.cookie('authToken', user.authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
@@ -126,7 +137,7 @@ class AuthController {
 		}
 	}
 
-	static async logout(req: Request, res: Response, next: NextFunction) {
+	static async logout(req: AuthCheckedRequest<Request>, res: Response, next: NextFunction) {
 		try {
 			res.clearCookie('authToken');
 
@@ -137,11 +148,10 @@ class AuthController {
 		}
 	}
 
-	static async deleteUser(req: TypedDeleteRequestParams, res: Response, next: NextFunction) {
+	static async deleteUser(req: AuthCheckedRequest<TypedDeleteRequestParams>, res: Response, next: NextFunction) {
 		try {
-			const username = req.params.username;
-
-			await UserService.softDeleteUser(username);
+			const user = req.user;
+			await UserService.softDeleteUser(user.username);
 
 			return res.status(200).json('ok');
 		} catch (error) {

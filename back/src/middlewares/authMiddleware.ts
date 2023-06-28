@@ -1,35 +1,26 @@
 
 import UserService from './../services/UserService';
-import { NextFunction, Response, } from 'express';
-import { TypedRequestParams } from '../types/express/CustomExpress';
+import { NextFunction, Response, Request } from 'express';
+import { UserInterface } from './../types/models/userModel';
 
 class AuthMiddleware {
-	static async authTokenCheck (req: TypedRequestParams<{ username: string }>, res: Response, next: NextFunction) {
+	static async authCheck(req: Request & {user: UserInterface}, res: Response, next: NextFunction) {
 		try {
-
-			const username = req.params.username;
-			if (!username) {
-				return res.status(400).json('No username');
-			}
-
 			const { authToken } = req.cookies;
 			if (!authToken) {
-				return next(res.status(400).json('No auth Token or invalid Token'));
+				return res.status(401).json('Unauthorized. No auth Token');
 			}
 
 			const user = await UserService.getUserByAuthToken(authToken);
-			if (user.username !== username) {
-				return next(res.status(401).json('Invalid username'));
+
+			if (!user) {
+				return res.status(401).json('Unauthorized. Invalid token');
 			}
 
-			const isTokenAndUsernameValid = await UserService.validateAuthToken(authToken, username);
-			if (!user || !isTokenAndUsernameValid) {
-				return next(res.status(401).json('Invalid token'));
-			}
-
+			req.user = user;
 			next();
 		} catch (error) {
-			return next(res.status(500).json('User not authorized server error'));
+			return res.status(500).json('User not authorized server error');
 		}
 	}
 }
