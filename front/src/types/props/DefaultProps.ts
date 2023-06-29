@@ -1,11 +1,11 @@
 export interface DefaultPropsInterface {
-  className?: string
+	className?: string
 }
 
 export interface InputPropsInterface extends DefaultPropsInterface {
-  type: 'text';
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  title?: string
+	type: 'text';
+	value: string;
+	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	placeholder?: string;
+	title?: string
 }
