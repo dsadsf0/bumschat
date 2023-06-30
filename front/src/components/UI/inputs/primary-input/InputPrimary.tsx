@@ -1,4 +1,4 @@
-import { InputPropsInterface } from "@/types/props/DefaultProps";
+import { InputPropsInterface } from "@/types/DefaultProps";
 import classNames from "classnames";
 import cl from './inputPrimaty.module.scss';
 

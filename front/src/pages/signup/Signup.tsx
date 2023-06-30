@@ -1,3 +1,4 @@
+import { UserService } from "@/api/services/UserService";
 import InputPrimary from "@/components/UI/inputs/primary-input"
 import { useState } from "react"
 import validateUsername from './../../utils/validateUsername';
@@ -10,10 +11,15 @@ const Signup = (): JSX.Element => {
 		setUsername(e.target.value)
 	}
 
-	const handleSignup = (e: React.KeyboardEvent<HTMLDivElement>) => {
+	const handleSignup = async (e: React.KeyboardEvent<HTMLDivElement>) => {
 		if (e.code === 'Enter') {
 			if (validateUsername(username)) {
 				console.log(username);
+				const res = await UserService.signup(username);
+				if (typeof res !== 'string') {
+					const { user, qrImg, recoveryPass } = res;
+					console.log(user, qrImg, recoveryPass);
+				}
 				setIsError(false);
 			} else {
 				setIsError(true);

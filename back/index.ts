@@ -13,24 +13,26 @@ const MONGO_URI = process.env.MONGO_CONNECTION || 'mongodb://127.0.0.1:27017/bum
 const app = express();
 const server = http.createServer(app);
 
-// socket.emit
+// socket.emit -- sending message to client
 interface ServerToClientEvents {
     noArg: () => void;
+    hello: (message: string) => void;
     basicEmit: (a: number, b: string) => void;
     withAck: (d: string, callback: (e: number) => void) => void;
 }
 
-// socket.on
+// socket.on -- getting message from client
 interface ClientToServerEvents {
     hello: () => void;
+    connected: () => void;
 }
 
-// io.on
+// io.on -- dont have a fucking idea what it do
 interface InterServerEvents {
     ping: () => void;
 }
 
-//socket.data
+//socket.data -- data in socket 
 interface SocketData {
     name: string;
     age: number;
@@ -48,9 +50,9 @@ const io = new Server<
     });
 
 io.on('connection', (socket) => {
-    console.log('New connection', socket);
-})
-
+    console.log('New connection', socket.id);
+    socket.emit('hello', `hello ${socket.id}`);
+});
 
 app.use(cookieParser())
 app.use(cors({
@@ -59,9 +61,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', router)
+app.use('/api', router);
 
-app.use('/qrcodes', express.static('QR-codes'))
+app.use('/qrcodes', express.static('QR-codes'));
 
 const runApp = async (): Promise<void> => {
     try {
