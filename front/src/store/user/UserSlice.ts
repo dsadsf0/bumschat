@@ -1,25 +1,24 @@
 import { IUser } from "@/types/User";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserService } from '@/api/services/UserService';
 
 
 export interface UserError {
-    user: string
+    user: string,
 }
 
 export interface UserLoading {
-    user: boolean
+    user: boolean,
 }
 
 export interface UserState {
-    user: IUser,
+    user: IUser | null,
     isLoading: UserLoading,
     error: UserError,
 }
 
 const initState: UserState = {
-    user: {
-        username: '',
-    },
+    user: null,
     isLoading: {
         user: false,
     },
@@ -28,7 +27,7 @@ const initState: UserState = {
     },
 }
 
-export const PaymentStatus = createSlice({
+export const UserSlice = createSlice({
     name: 'user',
     initialState: initState,
     reducers: {
@@ -42,6 +41,28 @@ export const PaymentStatus = createSlice({
             state.isLoading.user = action.payload;
         },
     },
-})
+    extraReducers(builder) {
+        builder
+            .addCase(UserService.authCheck.pending, (state) => {
+                state.isLoading.user = true;
+                state.error.user = '';
+                
+            })
+            .addCase(UserService.authCheck.fulfilled, (state, action) => {
+                state.isLoading.user = false;
+                state.error.user = '';
+                state.user = action.payload;
 
-export default PaymentStatus.reducer;
+            })
+            .addCase(UserService.authCheck.rejected, (state, action) => {
+                state.isLoading.user = false;
+                state.error.user = action.payload || 'Unexpexted Error';
+                state.user = null;
+            })
+    },
+});
+
+export const { setUser, setUserError, setUserLoading, } = UserSlice.actions;
+
+
+export default UserSlice.reducer;

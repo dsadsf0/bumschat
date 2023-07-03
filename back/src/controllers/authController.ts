@@ -14,6 +14,7 @@ import COOKIE_LIFE_TIME from '../constants/cookie';
 import qrService from '../fileServices/qrService';
 import shortPassGen from '../utils/shortPassGen';
 import { AUTH_TOKEN_SALT_ROUNDS, PASS_SALT_ROUNDS } from '../constants/salts';
+import validateUsername from '../utils/validateUsername';
 
 class AuthController {
 
@@ -29,6 +30,10 @@ class AuthController {
 			const { username } = req.body;
 			if (!username) {
 				return res.status(400).json('No username');
+			}
+
+			if (!validateUsername(username)) {
+				return res.status(400).json('Invalid username');
 			}
 
 			const user = await UserService.getUserByUsername(username)

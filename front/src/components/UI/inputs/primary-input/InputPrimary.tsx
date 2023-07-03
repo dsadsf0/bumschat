@@ -1,13 +1,14 @@
 import { InputPropsInterface } from "@/types/DefaultProps";
 import classNames from "classnames";
 import cl from './inputPrimaty.module.scss';
+import { memo } from 'react';
 
 interface Props extends InputPropsInterface {
     style: 'default' | 'big',
     isError?: boolean
 }
 
-const InputPrimary = ({ type, className, onChange, value, placeholder, style, title, isError }: Props): JSX.Element => {
+const InputPrimary = memo(({ type, className, onChange, value, placeholder, style, title, isError }: Props): JSX.Element => {
     return (
         <input 
             className={classNames(cl.input, cl[`input_${style}`], {[cl._error]: isError}, className)} 
@@ -18,6 +19,6 @@ const InputPrimary = ({ type, className, onChange, value, placeholder, style, ti
             title={title}
         />
     )
-}
+})
 
 export default InputPrimary

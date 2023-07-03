@@ -4,5 +4,4 @@ const validateUsername = (username: string): boolean => {
         && username.replace(/^[a-zа-яё0-9-_ ]*$/gui, '') === ''
         && username.trim().length === username.length;
 }
-
-export default validateUsername
+export default validateUsername;
