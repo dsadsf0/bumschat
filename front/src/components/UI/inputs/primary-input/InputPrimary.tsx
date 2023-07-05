@@ -8,9 +8,9 @@ interface Props extends InputPropsInterface {
     isError?: boolean
 }
 
-const InputPrimary = memo(({ type, className, onChange, value, placeholder, style, title, isError }: Props): JSX.Element => {
+const InputPrimary = memo(({ type, className, onChange, value, placeholder, style, title, isError, autoFocus }: Props): JSX.Element => {
     return (
-        <input 
+        <input
             className={classNames(cl.input, cl[`input_${style}`], {[cl._error]: isError}, className)} 
             type={type} 
             value={value}

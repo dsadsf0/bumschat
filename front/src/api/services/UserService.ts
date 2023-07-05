@@ -28,9 +28,9 @@ export const UserService = {
         }
     }),
 
-    loginCheck: createAsyncThunk<boolean, string, IRejectOptions>(Points.login+'Check', async (username, {rejectWithValue}) => {
+    loginCheck: createAsyncThunk<boolean, string, IRejectOptions>(`${Points.login}Check`, async (username, {rejectWithValue}) => {
         try {            
-            const res = await api.get(Points.login + `/${username}`);
+            const res = await api.get(`${Points.login}/${username}`);
             return res.status === HttpStatusCode.Ok;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -56,14 +56,14 @@ export const UserService = {
 
     login: createAsyncThunk<IUser, ILoginRequest, IRejectOptions>(Points.login, async (body, {rejectWithValue}) => {
         try {            
-            const res = await api.post<IUser>(Points.login, body);
+            const res = await api.post<IUser>(Points.login, {...body});
             return res.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 console.log(error.message);
                 return rejectWithValue(error.message);
             }
-            return rejectWithValue('Unexpected authCheck error');
+            return rejectWithValue('Unexpected login error');
         }
     }),
 }
