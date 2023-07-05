@@ -10,6 +10,7 @@ import { UserService } from '@/api/services/UserService';
 import { useAppSelector } from '@/hooks/useStore';
 import Loader from "@/components/UI/loader";
 import { getUserStateLoading } from "@/store/user/UserSelector";
+import Recovery from "@/pages/recovery";
 
 const App = (): JSX.Element => {
 	const dispatch = useAppDispatch();
@@ -36,6 +37,7 @@ const App = (): JSX.Element => {
 				<Route path={mainRoutes.home} element={<Home />} />
 				<Route path={mainRoutes.login} element={<Login />} />
 				<Route path={mainRoutes.signup} element={<Signup />} />
+				<Route path={mainRoutes.recovery} element={<Recovery />} />
 			</Routes>
 		</BrowserRouter>
 	)

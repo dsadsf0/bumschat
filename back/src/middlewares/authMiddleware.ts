@@ -8,7 +8,7 @@ class AuthMiddleware {
 		try {
 			const { authToken } = req.cookies;
 			if (!authToken) {
-				return res.status(401).json('Unauthorized. No auth Token');
+				return res.status(401).json('No auth Token');
 			}
 
 			const user = await UserService.getUserByAuthToken(authToken);
@@ -20,7 +20,7 @@ class AuthMiddleware {
 			req.user = user;
 			next();
 		} catch (error) {
-			return res.status(500).json('User not authorized server error');
+			return res.status(500).json('Server authorization error');
 		}
 	}
 }

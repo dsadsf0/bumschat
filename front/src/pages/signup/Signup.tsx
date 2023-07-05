@@ -40,17 +40,14 @@ const Signup = (): JSX.Element => {
 					setQrImg(qrImg);
 					setPass(recoveryPass);
 					setIsJustSigned(true);
+				} else {
+					setUsername('');
 				}
 			} else {
+				setUsername('');
 				dispatch(setUserError({key: 'signup', error: 'Invalid username'}))
 			}
 		}
-	}
-
-	if (isSigningUp) {
-		return (
-			<Loader/>
-		)
 	}
 
 	if (isJustSigned) {	
@@ -104,6 +101,7 @@ const Signup = (): JSX.Element => {
 				title="You can use only А-я A-z - _ spaces, but you can't use spaces at the beginning and at the end."
 				isError={signupError !== ''}
 			/>
+			{isSigningUp && <Loader/>}
 		</div>
 	)
 }

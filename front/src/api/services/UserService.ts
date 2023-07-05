@@ -22,7 +22,7 @@ export const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 console.log(error.message);
-                return rejectWithValue(error.message);
+                return rejectWithValue(error?.response?.data || error.message);
             }
             return rejectWithValue('Unexpected signup error');
         }
@@ -34,8 +34,8 @@ export const UserService = {
             return res.status === HttpStatusCode.Ok;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                console.log(error.message);
-                return rejectWithValue(error.message);
+                console.log(error);
+                return rejectWithValue(error?.response?.data || error.message);
             }
             return rejectWithValue('Unexpected loginCheck error');
         }
@@ -48,7 +48,7 @@ export const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 console.log(error.message);
-                return rejectWithValue(error.message);
+                return rejectWithValue(error?.response?.data || error.message);
             }
             return rejectWithValue('Unexpected authCheck error');
         }
@@ -61,7 +61,7 @@ export const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 console.log(error.message);
-                return rejectWithValue(error.message);
+                return rejectWithValue(error?.response?.data || error.message);
             }
             return rejectWithValue('Unexpected login error');
         }

@@ -36,10 +36,12 @@ const Login = memo((): JSX.Element => {
 				if (typeof res.payload !== 'string') {
 					setIsVerified(true);
 				} else {
+					setUsername('');
 					setIsVerified(false);
 				}
 			} else {
 				dispatch(setUserError({key: 'loginCheck', error: 'Invalid Username'}));
+				setUsername('');
 				setIsVerified(false);
 			}
 		}
@@ -47,19 +49,16 @@ const Login = memo((): JSX.Element => {
 
 	const handleLogin = async (e: React.KeyboardEvent<HTMLDivElement>) => {
 		if (e.code === 'Enter') {
-			dispatch(UserService.login({username, verificationCode: authCode}));
+			const res = await dispatch(UserService.login({username, verificationCode: authCode}));
+			if (typeof res.payload === 'string') {
+				setAuthCode('');
+			} 
 		}
 	}
 
 	if (user) {
 		return (
 			<Navigate to={mainRoutes.home}/>
-		)
-	}
-
-	if (isLoginning || isCheckingLogin) {
-		return (
-			<Loader/>
 		)
 	}
 
@@ -71,24 +70,28 @@ const Login = memo((): JSX.Element => {
 					type="text"
 					value={authCode}
 					onChange={handleSetAuthCode}
-					placeholder="Enter 2FA code"
+					placeholder={loginError || "Enter 2FA code"}
 					isError={loginError !== ''}
 				/>
+				{isLoginning && <Loader/>}
 			</div>
 		)
 	}
 
 	return (
 		<div onKeyDown={handleLoginCheck}>
-				<InputPrimary
-					style="big"
-					type="text"
-					value={username}
-					onChange={handleSetUsername}
-					placeholder="Enter your username"
-					isError={loginCheckError !== ''}
-				/>
+			<InputPrimary
+				style="big"
+				type="text"
+				value={username}
+				onChange={handleSetUsername}
+				placeholder={loginCheckError || "Enter your username"}
+				isError={loginCheckError !== ''}
+				title="You can use only А-я A-z - _ spaces, but you can't use spaces at the beginning and at the end."
+			/>
+			{isCheckingLogin && <Loader/>}
 		</div>
+		
 	)
 })
 

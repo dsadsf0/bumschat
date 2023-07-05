@@ -7,6 +7,7 @@ import {
 	TypedDeleteRequestParams, 
 	TypedLoginCheckNameRequestParams, 
 	TypedLoginRequestBody, 
+	TypedRecoveryUserRequestBody, 
 	TypedSignupRequestBody 
 } from '../types/express/AuthRequest';
 import UserService from '../services/UserService';
@@ -21,7 +22,7 @@ class AuthController {
 	static async authTokenCheck(req: AuthCheckedRequest<Request>, res: Response, next: NextFunction) {
 		const user = req.user;
 
-		const userDto = UserService.userDTO(user)
+		const userDto = UserService.userDTO(user);
 		return res.status(200).json(userDto);
 	}
 
@@ -38,12 +39,12 @@ class AuthController {
 
 			const user = await UserService.getUserByUsername(username)
 			if (user) {
-				return res.status(400).json('User with this username already exist');
+				return res.status(400).json('This username is taken');
 			}
 
 			const secret = speakeasy.generateSecret({
 				name: `Bums Chat: ${username}`,
-			})
+			});
 
 			let authToken = await bcrypt.hash(username, AUTH_TOKEN_SALT_ROUNDS);
 			while (await UserService.getUserByAuthToken(authToken)) {
@@ -78,7 +79,7 @@ class AuthController {
 			});
 		} catch (error) {
 			console.log(error);
-			return res.status(500).json('Server creating user Error');
+			return res.status(500).json('Server Creating User Error');
 		}
 	}
 
@@ -99,7 +100,7 @@ class AuthController {
 			return res.status(200).json('ok');
 		} catch (error) {
 			console.log(error);            
-			return res.status(500).json('Server username verification Error');
+			return res.status(500).json('Server Username Verification Error');
 		}
 	}
 
@@ -115,20 +116,20 @@ class AuthController {
 				return res.status(400).json('No 2FA code');
 			}
 
-			const user = await UserService.getUserByUsername(username)
+			const user = await UserService.getUserByUsername(username);
 
 			if (!user) {
-				return res.status(401).json('This user does not exist');
+				return res.status(400).json('This user does not exist');
 			}
 
 			const isCorrectToken = speakeasy.totp.verify({
 				secret: user.secretBase32,
 				encoding: 'base32',
 				token: verificationCode
-			})
+			});
 
 			if (!isCorrectToken) {
-				return res.status(401).json('Unauthorized. Not correct 2FA code');
+				return res.status(400).json('Not correct 2FA code');
 			}
 
 			res.cookie('authToken', user.authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
@@ -138,7 +139,7 @@ class AuthController {
 			return res.status(200).json(userDto);
 		} catch (error) {
 			console.log(error);            
-			return res.status(500).json('Server Error');
+			return res.status(500).json('Server Login Error');
 		}
 	}
 
@@ -149,7 +150,7 @@ class AuthController {
 			return res.status(200).json('ok');
 		} catch (error) {
 			console.log(error);
-			return res.status(500).json('Server Error');
+			return res.status(500).json('Server Logout Error');
 		}
 	}
 
@@ -164,6 +165,42 @@ class AuthController {
 			return res.status(500).json('Server Error');
 		}
 	}
+
+	static async recoveryUser(req: TypedRecoveryUserRequestBody, res: Response, next: NextFunction) {
+		try {
+			const {username, recoveryPass} = req.body;
+
+			if (!username) {
+				return res.status(400).json('No username');
+			}
+
+			if (!recoveryPass) {
+				return res.status(400).json('No recoveryPass');
+			}
+
+			const user = await UserService.getUserByUsername(username)
+			if (!user) {
+				return res.status(400).json('This user does not exist');
+			}
+
+			const isCorrectPass = await bcrypt.compare(recoveryPass, user.recoverySecret);
+
+			if (!isCorrectPass) {
+				return res.status(400).json('Invalid recovery password');
+			}
+
+			res.cookie('authToken', user.authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
+
+			return res.status(200).json({
+				user: UserService.userDTO(user), 
+				qrImg: user.qrImg,
+				recoveryPass,
+			});
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json('Server Recovery Error');
+		}
+	}
 }
 
-export default AuthController
+export default AuthController;

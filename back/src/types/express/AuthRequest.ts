@@ -7,3 +7,4 @@ export type TypedLoginCheckNameRequestParams = TypedRequestParams<{username: str
 export type TypedLoginRequestBody = TypedRequestBody<{username: string, verificationCode: string}>;
 export type TypedDeleteRequestParams = TypedRequestParams<{ username: string }>;
 export type AuthCheckedRequest<T> = T & {user: UserInterface};
+export type TypedRecoveryUserRequestBody = TypedRequestBody<{username: string, recoveryPass: string}>
