@@ -1,7 +1,6 @@
 import { UserService } from "@/api/services/UserService";
 import InputPrimary from "@/components/UI/inputs/primary-input"
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { ISignupResponse } from "@/types/api-services/UserService";
 import classnames from "classnames";
 import { useState } from "react"
 import validateUsername from './../../utils/validateUsername';
@@ -10,16 +9,18 @@ import { API_URL } from './../../api/index';
 import { Link, Navigate } from "react-router-dom";
 import mainRoutes from "@/routes/mainRoutes";
 import Loader from './../../components/UI/loader/index';
-import { getUser } from "@/store/user/UserSelector";
+import { getUser, getUserStateLoading } from "@/store/user/UserSelector";
+import { setUserError } from "@/store/user/UserSlice";
+import { getUserStateError } from './../../store/user/UserSelector';
 
 const Signup = (): JSX.Element => {
 	const [username, setUsername] = useState<string>('');
-	const [isError, setIsError] = useState<boolean>(false);
 	const [qrImage, setQrImg] = useState<string>('');
 	const [pass, setPass] = useState<string>('');
 	const dispatch = useAppDispatch();
-	const [isSigningUp, setIsSigningUp] = useState<boolean>(false);
 	const user = useAppSelector(getUser);
+	const {signup: isSigningUp} = useAppSelector(getUserStateLoading);
+	const {signup: signupError} = useAppSelector(getUserStateError);
 
 	const loginHandler = () => {
 		dispatch(UserService.authCheck());
@@ -32,20 +33,14 @@ const Signup = (): JSX.Element => {
 	const handleSignup = async (e: React.KeyboardEvent<HTMLDivElement>) => {
 		if (e.code === 'Enter') {
 			if (validateUsername(username)) {
-				console.log(username);
-				setIsSigningUp(true);
-				const res: ISignupResponse | string = await UserService.signup(username);
-				setIsSigningUp(false);
-				if (typeof res !== 'string') {
-					setIsError(false);
-					const { qrImg, recoveryPass } = res;
+				const res = await dispatch(UserService.signup(username));
+				if (res.payload && typeof res.payload !== 'string') {
+					const { qrImg, recoveryPass } = res.payload;
 					setQrImg(qrImg);
 					setPass(recoveryPass);
-				} else {
-					setIsError(true);
 				}
 			} else {
-				setIsError(true);
+				dispatch(setUserError({key: 'signup', error: 'Invalid username'}))
 			}
 		}
 	}
@@ -70,9 +65,9 @@ const Signup = (): JSX.Element => {
 					type="text"
 					value={username}
 					onChange={handleSetUsername}
-					placeholder="Enter your username"
+					placeholder={signupError || "Enter your username"}
 					title="You can use only А-я A-z - _ spaces, but you can't use spaces at the beginning and at the end."
-					isError={isError}
+					isError={signupError !== ''}
 				/>
 			</div>
 		)

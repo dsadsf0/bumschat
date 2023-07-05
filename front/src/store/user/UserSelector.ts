@@ -6,4 +6,3 @@ export const getUserState = (state:RootState): UserState => state.user;
 export const getUser = (state:RootState): IUser | null => state.user.user;
 export const getUserStateError = (state:RootState): UserError => state.user.error;
 export const getUserStateLoading = (state:RootState): UserLoading => state.user.isLoading;
-export const getUserLoading = (state:RootState): boolean => state.user.isLoading.user;

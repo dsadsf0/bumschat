@@ -8,12 +8,12 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useAppDispatch } from './../hooks/useStore';
 import { UserService } from '@/api/services/UserService';
 import { useAppSelector } from '@/hooks/useStore';
-import { getUserLoading } from "@/store/user/UserSelector";
 import Loader from "@/components/UI/loader";
+import { getUserStateLoading } from "@/store/user/UserSelector";
 
 const App = (): JSX.Element => {
 	const dispatch = useAppDispatch();
-	const isUserLoading = useAppSelector(getUserLoading)
+	const {auth: IsAuthChecking} = useAppSelector(getUserStateLoading)
 
 	useEffect(() => {
 		dispatch(UserService.authCheck());
@@ -24,7 +24,7 @@ const App = (): JSX.Element => {
 
 	}, []);
 
-	if (isUserLoading) {
+	if (IsAuthChecking) {
 		return (
 			<Loader/>
 		)

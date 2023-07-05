@@ -1,14 +1,20 @@
 import { IUser } from "@/types/User";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createReducer, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserService } from '@/api/services/UserService';
 
 
 export interface UserError {
-    user: string,
+    auth: string,
+    loginCheck: string
+    login: string,
+    signup: string,
 }
 
 export interface UserLoading {
-    user: boolean,
+    auth: boolean,
+    loginCheck: boolean
+    login: boolean,
+    signup: boolean,
 }
 
 export interface UserState {
@@ -20,10 +26,16 @@ export interface UserState {
 const initState: UserState = {
     user: null,
     isLoading: {
-        user: false,
+        auth: false,
+        loginCheck: false,
+        login: false,
+        signup: false,
     },
     error: {
-        user: '',
+        auth: '',
+        loginCheck: '',
+        login: '',
+        signup: '',
     },
 }
 
@@ -34,35 +46,75 @@ export const UserSlice = createSlice({
         setUser(state, action: PayloadAction<IUser>) {
             state.user = action.payload;
         },
-        setUserError(state, action: PayloadAction<string>) {
-            state.error.user = action.payload;
-        },
-        setUserLoading(state, action: PayloadAction<boolean>) {
-            state.isLoading.user = action.payload;
-        },
+        setUserError(state, action: PayloadAction<{key: keyof UserError, error: string}>) {
+            state.error[action.payload.key] = action.payload.error;
+        }
     },
     extraReducers(builder) {
         builder
+            //signup
+            .addCase(UserService.signup.pending, (state) => {
+                state.isLoading.signup = true;
+            })
+            .addCase(UserService.signup.fulfilled, (state, action) => {
+                state.isLoading.signup = false;
+                state.error.signup = '';
+                state.user = action.payload.user;
+            })
+            .addCase(UserService.signup.rejected, (state, action) => {
+                state.isLoading.signup = false;
+                state.error.signup = action.payload || 'Unexpexted Error';
+                state.user = null;
+            })
+
+            // auth checking
             .addCase(UserService.authCheck.pending, (state) => {
-                state.isLoading.user = true;
-                state.error.user = '';
-                
+                state.isLoading.auth = true;
+                state.error.auth = '';
             })
             .addCase(UserService.authCheck.fulfilled, (state, action) => {
-                state.isLoading.user = false;
-                state.error.user = '';
+                state.isLoading.auth = false;
+                state.error.auth = '';
                 state.user = action.payload;
-
             })
             .addCase(UserService.authCheck.rejected, (state, action) => {
-                state.isLoading.user = false;
-                state.error.user = action.payload || 'Unexpexted Error';
+                state.isLoading.auth = false;
+                state.error.auth = action.payload || 'Unexpexted Error';
+                state.user = null;
+            })
+
+            // login checking
+            .addCase(UserService.loginCheck.pending, (state) => {
+                state.isLoading.loginCheck = true;
+            })
+            .addCase(UserService.loginCheck.fulfilled, (state) => {
+                state.isLoading.loginCheck = false;
+                state.error.loginCheck = '';
+            })
+            .addCase(UserService.loginCheck.rejected, (state, action) => {
+                state.isLoading.loginCheck = false;
+                state.error.loginCheck = action.payload || 'Unexpexted Error';
+                state.user = null;
+            })
+
+            // login
+            .addCase(UserService.login.pending, (state) => {
+                state.isLoading.login = true;
+            })
+            .addCase(UserService.login.fulfilled, (state, action) => {
+                state.isLoading.login = false;
+                state.error.login = '';
+                state.user = action.payload;
+            })
+            .addCase(UserService.login.rejected, (state, action) => {
+                state.isLoading.login = false;
+                state.error.login = action.payload || 'Unexpexted Error';
                 state.user = null;
             })
     },
 });
 
-export const { setUser, setUserError, setUserLoading, } = UserSlice.actions;
+export const { setUser, setUserError, } = UserSlice.actions;
 
 
 export default UserSlice.reducer;
