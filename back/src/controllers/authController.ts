@@ -11,7 +11,7 @@ import {
 	TypedSignupRequestBody 
 } from '../types/express/AuthRequest';
 import UserService from '../services/UserService';
-import COOKIE_LIFE_TIME from '../constants/cookie';
+import { COOKIE_OPTIONS } from '../constants/cookie';
 import qrService from '../fileServices/qrService';
 import shortPassGen from '../utils/shortPassGen';
 import { AUTH_TOKEN_SALT_ROUNDS, PASS_SALT_ROUNDS } from '../constants/salts';
@@ -70,7 +70,7 @@ class AuthController {
 				qrImg: fileName,
 			});
 
-			res.cookie('authToken', authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
+			res.cookie('authToken', authToken, COOKIE_OPTIONS);
 
 			return res.status(200).json({
 				user: newUser, 
@@ -132,7 +132,7 @@ class AuthController {
 				return res.status(400).json('Not correct 2FA code');
 			}
 
-			res.cookie('authToken', user.authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
+			res.cookie('authToken', user.authToken, COOKIE_OPTIONS);
 
 			const userDto = UserService.userDTO(user);
 
@@ -189,7 +189,7 @@ class AuthController {
 				return res.status(400).json('Invalid recovery password');
 			}
 
-			res.cookie('authToken', user.authToken, { maxAge: COOKIE_LIFE_TIME, httpOnly: true, secure: false, sameSite: 'lax' });
+			res.cookie('authToken', user.authToken, COOKIE_OPTIONS);
 
 			return res.status(200).json({
 				user: UserService.userDTO(user), 
