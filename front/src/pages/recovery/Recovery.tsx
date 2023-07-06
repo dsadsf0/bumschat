@@ -17,7 +17,7 @@ const Recovery = () => {
 
     const handleRecovery = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.code === 'Enter') {
-			// dispatch(UserService.login({username, verificationCode: authCode}));
+			// dispatch(UserService.recovery({username, recoveryPass}));
 		}
     }
 

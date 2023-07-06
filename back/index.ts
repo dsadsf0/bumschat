@@ -15,16 +15,12 @@ const server = http.createServer(app);
 
 // socket.emit -- sending message to client
 interface ServerToClientEvents {
-    noArg: () => void;
-    hello: (message: string) => void;
-    basicEmit: (a: number, b: string) => void;
-    withAck: (d: string, callback: (e: number) => void) => void;
+    ['new message']: (msg: string) => void
 }
 
 // socket.on -- getting message from client
 interface ClientToServerEvents {
-    hello: () => void;
-    connected: () => void;
+    ['send message']: (msg: string) => void
 }
 
 // io.on -- dont have a fucking idea what it do
@@ -35,7 +31,6 @@ interface InterServerEvents {
 //socket.data -- data in socket 
 interface SocketData {
     name: string;
-    age: number;
 }
 
 const io = new Server<
@@ -51,7 +46,12 @@ const io = new Server<
 
 io.on('connection', (socket) => {
     console.log('New connection', socket.id);
-    socket.emit('hello', `hello ${socket.id}`);
+    
+    socket.on('send message', (msg) => {
+        const {user} = socket.handshake.auth;
+        socket.data.name = user?.username || null;
+        io.sockets.emit('new message', msg);
+    });
 });
 
 app.use(cookieParser())

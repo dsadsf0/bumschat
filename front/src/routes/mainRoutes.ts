@@ -1,5 +1,6 @@
 const mainRoutes = {
-	home: '/',
+	welcome: '/',
+	chats: '/chats',
 	login: '/login',
 	signup: '/signup',
 	recovery: '/recovery',

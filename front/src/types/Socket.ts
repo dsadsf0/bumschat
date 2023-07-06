@@ -1,10 +1,10 @@
 
 // socket.emit -- sending message to server
-export interface ClientToServerEvents {
-	hello: (msg: string) => void;
+export interface ClientToServerEvents  {
+	['send message']: (msg: string) => void
 }
 
 // socket.on -- getting message from server
 export interface ServerToClientEvents {
-	connected: () => void;
+	['new message']: (msg: string) => void;
 }

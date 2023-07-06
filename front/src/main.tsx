@@ -11,7 +11,7 @@ import { ClientToServerEvents, ServerToClientEvents } from './types/Socket';
 import { Provider } from 'react-redux';
 import { store } from './store';
 
-export const userSocket: Socket<ClientToServerEvents, ServerToClientEvents> = io('http://localhost:2001');
+export const userSocket: Socket<ServerToClientEvents, ClientToServerEvents> = io('http://localhost:2001');
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<Provider store={store}>

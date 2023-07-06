@@ -66,7 +66,7 @@ const Signup = (): JSX.Element => {
 					</div>
 					<img src={`${API_URL}/qrcodes/${qrImage}`} alt="" />
 					<Link 
-						className={classnames(cl.signup__login)} to={mainRoutes.home} 
+						className={classnames(cl.signup__login)} to={mainRoutes.chats} 
 						onClick={loginHandler}
 					>
 						Login!
@@ -80,7 +80,7 @@ const Signup = (): JSX.Element => {
 		return (
 			<h1>You already signed.&nbsp;
 				<Link 
-						className={classnames(cl.signup__login)} to={mainRoutes.home} 
+						className={classnames(cl.signup__login)} to={mainRoutes.chats} 
 						onClick={loginHandler}
 						replace={true}
 					>

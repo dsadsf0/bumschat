@@ -58,7 +58,7 @@ const Login = memo((): JSX.Element => {
 
 	if (user) {
 		return (
-			<Navigate to={mainRoutes.home}/>
+			<Navigate to={mainRoutes.chats}/>
 		)
 	}
 

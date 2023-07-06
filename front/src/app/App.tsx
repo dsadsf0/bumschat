@@ -1,5 +1,4 @@
-import { userSocket } from "@/main";
-import Home from "@/pages/home";
+import Chat from "@/pages/chat";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import mainRoutes from "@/routes/mainRoutes";
@@ -11,6 +10,7 @@ import { useAppSelector } from '@/hooks/useStore';
 import Loader from "@/components/UI/loader";
 import { getUserStateLoading } from "@/store/user/UserSelector";
 import Recovery from "@/pages/recovery";
+import Welcome from "@/pages/welcome";
 
 const App = (): JSX.Element => {
 	const dispatch = useAppDispatch();
@@ -18,11 +18,6 @@ const App = (): JSX.Element => {
 
 	useEffect(() => {
 		dispatch(UserService.authCheck());
-
-		userSocket.on('hello', msg => {
-			console.log(msg);
-		});
-
 	}, []);
 
 	if (IsAuthChecking) {
@@ -34,7 +29,8 @@ const App = (): JSX.Element => {
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route path={mainRoutes.home} element={<Home />} />
+				<Route path={mainRoutes.welcome} element={<Welcome />} />
+				<Route path={mainRoutes.chats} element={<Chat />} />
 				<Route path={mainRoutes.login} element={<Login />} />
 				<Route path={mainRoutes.signup} element={<Signup />} />
 				<Route path={mainRoutes.recovery} element={<Recovery />} />
