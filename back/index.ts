@@ -40,7 +40,8 @@ const io = new Server<
         SocketData
     >(server, {
         cors: {
-            origin: '*'
+            origin: ['http://192.168.1.112:5173'],
+            credentials: true,
         }
     });
 
@@ -50,13 +51,14 @@ io.on('connection', (socket) => {
     socket.on('send message', (msg) => {
         const {user} = socket.handshake.auth;
         socket.data.name = user?.username || null;
-        io.sockets.emit('new message', msg);
+        io.emit('new message', msg);
     });
 });
 
 app.use(cookieParser())
 app.use(cors({
-    origin: '*'
+    origin: ['http://192.168.1.112:5173'],
+    credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

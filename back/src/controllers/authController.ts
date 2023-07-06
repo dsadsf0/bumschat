@@ -145,7 +145,7 @@ class AuthController {
 
 	static async logout(req: AuthCheckedRequest<Request>, res: Response, next: NextFunction) {
 		try {
-			res.clearCookie('authToken');
+			res.clearCookie('authToken', COOKIE_OPTIONS);
 
 			return res.status(200).json('ok');
 		} catch (error) {

@@ -1,15 +1,18 @@
-import { Link } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { useAppSelector } from '@/hooks/useStore';
 import { getUser } from '@/store/user/UserSelector';
 import { useState } from 'react';
 import { userSocket } from "@/main";
 import { useEffect } from 'react';
 import mainRoutes from '@/routes/mainRoutes';
+import { UserService } from '@/api/services/UserService';
+import { useAppDispatch } from './../../hooks/useStore';
 
 const Chat = (): JSX.Element => {
 	const user = useAppSelector(getUser);
 	const [message, setMessage] = useState<string>('');
 	const [msgs, setMsgs] = useState<string[]>([]);
+	const dispatch = useAppDispatch();
 
 	const handleSubmitMessage = async (e: React.KeyboardEvent<HTMLDivElement>) => {
 		console.log(e.key);
@@ -27,6 +30,12 @@ const Chat = (): JSX.Element => {
 		});
 	}, [])
 
+	if(!user) {
+		return (
+			<Navigate to={mainRoutes.welcome}/>
+		)
+	}
+
 	return (
 		<div>
 			<div>
@@ -43,6 +52,7 @@ const Chat = (): JSX.Element => {
 					onChange={(e) => setMessage(e.target.value)}
 					placeholder='Enter your message'
 				/>
+				<button onClick={() => dispatch(UserService.logout())}>Logout</button>
 			</div>
 		</div>
 	)

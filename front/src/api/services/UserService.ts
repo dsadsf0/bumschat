@@ -1,17 +1,19 @@
 import axios, { AxiosError, HttpStatusCode } from "axios";
 import { API_URL } from './../index';
-import { ILoginCheckRequest, ILoginRequest, IRejectOptions, ISignupResponse } from "@/types/api-services/UserServiceTypes";
+import { ILoginRequest, IRejectOptions, ISignupResponse } from "@/types/api-services/UserServiceTypes";
 import { IUser } from "@/types/User";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 const api = axios.create({
-    baseURL: API_URL + '/api/auth'
+    baseURL: API_URL + '/api/auth',
+    withCredentials: true,
 });
 
 const Points = {
     signup: '/signup',
     authCheck: '/',
-    login: '/login'
+    login: '/login',
+    logout: '/logout'
 }
 
 export const UserService = {
@@ -58,6 +60,18 @@ export const UserService = {
         try {            
             const res = await api.post<IUser>(Points.login, {...body});
             return res.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                console.log(error.message);
+                return rejectWithValue(error?.response?.data || error.message);
+            }
+            return rejectWithValue('Unexpected login error');
+        }
+    }),
+
+    logout: createAsyncThunk<void, void, IRejectOptions>(Points.logout, async (_, {rejectWithValue}) => {
+        try {            
+            await api.get(Points.logout);
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 console.log(error.message);

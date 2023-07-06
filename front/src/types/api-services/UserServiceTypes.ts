@@ -10,10 +10,6 @@ export interface ISignupResponse {
     recoveryPass: string,
 }
 
-export interface ILoginCheckRequest {
-    username: string,
-}
-
 export interface ILoginRequest {
     username: string,
     verificationCode: string,

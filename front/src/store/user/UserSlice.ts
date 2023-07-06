@@ -8,6 +8,7 @@ export interface UserError {
     loginCheck: string
     login: string,
     signup: string,
+    logout: string,
 }
 
 export interface UserLoading {
@@ -15,6 +16,7 @@ export interface UserLoading {
     loginCheck: boolean
     login: boolean,
     signup: boolean,
+    logout: boolean, 
 }
 
 export interface UserState {
@@ -30,12 +32,14 @@ const initState: UserState = {
         loginCheck: false,
         login: false,
         signup: false,
+        logout: false,
     },
     error: {
         auth: '',
         loginCheck: '',
         login: '',
         signup: '',
+        logout: '',
     },
 }
 
@@ -63,7 +67,7 @@ export const UserSlice = createSlice({
             })
             .addCase(UserService.signup.rejected, (state, action) => {
                 state.isLoading.signup = false;
-                state.error.signup = action.payload || 'Unexpexted Error';
+                state.error.signup = action.payload || 'Unexpected Error';
                 state.user = null;
             })
 
@@ -79,7 +83,7 @@ export const UserSlice = createSlice({
             })
             .addCase(UserService.authCheck.rejected, (state, action) => {
                 state.isLoading.auth = false;
-                state.error.auth = action.payload || 'Unexpexted Error';
+                state.error.auth = action.payload || 'Unexpected Error';
                 state.user = null;
             })
 
@@ -93,7 +97,7 @@ export const UserSlice = createSlice({
             })
             .addCase(UserService.loginCheck.rejected, (state, action) => {
                 state.isLoading.loginCheck = false;
-                state.error.loginCheck = action.payload || 'Unexpexted Error';
+                state.error.loginCheck = action.payload || 'Unexpected Error';
                 state.user = null;
             })
 
@@ -108,8 +112,22 @@ export const UserSlice = createSlice({
             })
             .addCase(UserService.login.rejected, (state, action) => {
                 state.isLoading.login = false;
-                state.error.login = action.payload || 'Unexpexted Error';
+                state.error.login = action.payload || 'Unexpected Error';
                 state.user = null;
+            })
+
+            // logout
+            .addCase(UserService.logout.pending, (state) => {
+                state.isLoading.logout = true;
+            })
+            .addCase(UserService.logout.fulfilled, (state) => {
+                state.isLoading.logout = false;
+                state.error.logout = '';
+                state.user = null;
+            })
+            .addCase(UserService.logout.rejected, (state, action) => {
+                state.isLoading.logout = false;
+                state.error.logout = action.payload || 'Unexpected Error';
             })
     },
 });

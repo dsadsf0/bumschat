@@ -9,7 +9,9 @@ const Welcome = () => {
     const user = useAppSelector(getUser);
 
     if (user) {
-        <Navigate to={mainRoutes.chats} replace={true}/>
+        return (
+            <Navigate to={mainRoutes.chats} replace={true}/>
+        )
     }
 
     return (
