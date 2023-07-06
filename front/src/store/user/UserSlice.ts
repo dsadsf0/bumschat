@@ -1,5 +1,5 @@
 import { IUser } from "@/types/User";
-import { createReducer, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserService } from '@/api/services/UserService';
 
 
