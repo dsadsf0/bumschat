@@ -10,9 +10,9 @@ import {
 	TypedRecoveryUserRequestBody, 
 	TypedSignupRequestBody 
 } from '../types/express/AuthRequest';
-import UserService from '../services/UserService';
+import UserService from '../services/mongo/UserService';
 import { COOKIE_OPTIONS } from '../constants/cookie';
-import qrService from '../fileServices/qrService';
+import qrService from '../services/files/qrService';
 import shortPassGen from '../utils/shortPassGen';
 import { AUTH_TOKEN_SALT_ROUNDS, PASS_SALT_ROUNDS } from '../constants/salts';
 import validateUsername from '../utils/validateUsername';

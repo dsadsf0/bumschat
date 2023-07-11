@@ -15,8 +15,6 @@ const Chat = (): JSX.Element => {
 	const dispatch = useAppDispatch();
 
 	const handleSubmitMessage = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-		console.log(e.key);
-
 		if (e.code === 'Enter') {
 			userSocket.emit('send message', message);
 			setMessage('');

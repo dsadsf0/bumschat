@@ -29,7 +29,7 @@ const Recovery = () => {
                 value={username}
                 onChange={handleSetUsername}
                 placeholder="Enter username"
-                isError={'loginError' !== ''}
+                // isError={'loginError' !== ''}
             />
             <InputPrimary
                 style="big"
@@ -37,7 +37,7 @@ const Recovery = () => {
                 value={recoveryPass}
                 onChange={handleSetRecoveryPass}
                 placeholder="Enter recovery password"
-                isError={'loginError' !== ''}
+                // isError={'loginError' !== ''}
             />
         </div>
     )

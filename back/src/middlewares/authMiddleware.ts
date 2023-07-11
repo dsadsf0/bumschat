@@ -1,7 +1,7 @@
 
-import UserService from './../services/UserService';
+import UserService from '../services/mongo/UserService';
 import { NextFunction, Response, Request } from 'express';
-import { UserInterface } from './../types/models/userModel';
+import { UserInterface } from '../types/models/UserTypes';
 
 class AuthMiddleware {
 	static async authCheck(req: Request & {user: UserInterface}, res: Response, next: NextFunction) {

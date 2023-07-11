@@ -1,7 +1,7 @@
-import User from '../models/UserModel';
-import { UserInterface, UserDTOInterface } from './../types/models/userModel';
+import User from '../../models/UserModel';
+import { UserInterface, UserDTOInterface } from '../../types/models/UserTypes';
 import bcrypt from 'bcrypt';
-import UserModel from '../models/UserModel';
+import UserModel from '../../models/UserModel';
 
 
 class UserService {

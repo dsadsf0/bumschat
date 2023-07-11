@@ -1,5 +1,5 @@
 import { TypedRequestBody, TypedRequestParams } from "./CustomExpress";
-import { UserInterface } from './../models/userModel';
+import { UserInterface } from '../models/UserTypes';
 
 
 export type TypedSignupRequestBody = TypedRequestBody<{username: string}>;
