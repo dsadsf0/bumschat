@@ -8,10 +8,19 @@ import { Users, UsersSchema } from './user.model';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CryptoService } from 'src/crypto/crypto.service';
 import { QrService } from 'src/qr-service/qr.service';
+import { SpeakeasyService } from 'src/speakeasy/speakeasy.service';
 
 @Module({
 	imports: [MongooseModule.forFeature([{ name: Users.name, schema: UsersSchema }])],
 	controllers: [UserController],
-	providers: [UserService, UserRepository, CryptoService, QrService, ConfigService, SnatchedService],
+	providers: [
+		UserService,
+		UserRepository,
+		CryptoService,
+		QrService,
+		SpeakeasyService,
+		ConfigService,
+		SnatchedService
+	],
 })
 export class UserModule {}
