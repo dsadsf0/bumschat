@@ -22,7 +22,6 @@ const Chat = (): JSX.Element => {
 	}
 
 	useEffect(() => {
-		userSocket.auth = {user};
 		userSocket.on('new message', msg => {
 			setMsgs(prev => [...prev, msg]);
 		});

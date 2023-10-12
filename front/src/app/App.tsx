@@ -14,7 +14,7 @@ import Welcome from "@/pages/welcome";
 
 const App = (): JSX.Element => {
 	const dispatch = useAppDispatch();
-	const {auth: IsAuthChecking} = useAppSelector(getUserStateLoading)
+	const {auth: IsAuthChecking} = useAppSelector(getUserStateLoading);
 
 	useEffect(() => {
 		dispatch(UserService.authCheck());

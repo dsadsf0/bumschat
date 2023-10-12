@@ -47,15 +47,13 @@ const io = new Server<
 
 io.on('connection', (socket) => {
     console.log('New connection', socket.id);
-    
+
     socket.on('send message', (msg) => {
-        const {user} = socket.handshake.auth;
-        socket.data.name = user?.username || null;
         io.emit('new message', msg);
     });
 });
 
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(cors({
     origin: ['http://192.168.1.112:5173'],
     credentials: true,
