@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { SnatchedService } from 'src/snatchedLogger/logger.service';
-import * as fs from 'fs/promises';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as uuid from 'uuid';
 import * as qrcode from 'qrcode';
 import handleError from 'src/utils/errorHandler';
 
 const QR_NAME_DELIMITER = '_';
+
+export const QR_FOLDER_NAME = 'QR-codies';
 
 @Injectable()
 export class QrService {
@@ -50,8 +52,9 @@ export class QrService {
 
 		try {
 			const fileName = `${username}${QR_NAME_DELIMITER}${uuid.v4()}.png`;
-			const filePath = path.resolve(__dirname, '..', '..', 'QR-codes', fileName);
+			const filePath = path.resolve(__dirname, '..', '..', QR_FOLDER_NAME, fileName);
 
+			await fs.ensureFile(filePath);
 			await fs.writeFile(filePath, treatedQRData, { encoding: 'base64' });
 
 			this.logger.info(`Qr image to ${username} has been created.`,loggerContext, username);
@@ -67,7 +70,7 @@ export class QrService {
 		const loggerContext = `${QrService.name}/${this.deleteQrImg.name}`;
 
 		try {
-			const filePath = path.resolve('QR-codes', fileName);
+			const filePath = path.resolve(QR_FOLDER_NAME, fileName);
 			const [username] = fileName.split(QR_NAME_DELIMITER);
 
 			await fs.unlink(filePath);

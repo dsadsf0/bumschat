@@ -16,7 +16,8 @@ import { SpeakeasyService } from 'src/speakeasy/speakeasy.service';
 import { UserGetRdo } from './rdo/user-get.rdo';
 import { Users } from './user.model';
 import { UserLoginDto } from './dto/user-login.dto';
-import { AuthCheckedRequest } from './types/authCheckedTypes';
+import { AuthCheckedAdmin, AuthCheckedRequest } from './types/authCheckedTypes';
+import { UserRecoveryDto } from './dto/user-recovery.dto';
 
 @Injectable()
 export class UserService {
@@ -26,37 +27,36 @@ export class UserService {
 		private readonly qrService: QrService,
 		private readonly speakeasy: SpeakeasyService,
 		private readonly config: ConfigService<AppConfigSchema>,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedService,
 	) {}
 
 	private adapterUserGetRdo(user: Users): UserGetRdo {
 		return { username: user.username };
 	}
 
-	// ВЫНЕСТИ В ДЕКОРАТОР
-	public async authCheck(req: Request) {
-		const loggerContext = `${UserService.name}/${this.authCheck.name}`;
+	private setAuthCookie(username: string, response: Response): void {
+		const authToken = this.crypt.globalEncrypt(username);
+		response.cookie('authToken', authToken, COOKIE_OPTIONS);
+	}
+
+	public async getUser(username: string): Promise<UserGetRdo> {
+		const loggerContext = `${UserService.name}/${this.getUser.name}`;
 
 		try {
-			const[ { authToken, username }] = Object.values(req.cookies)
-				.filter((value) => value[0].includes('auth_token_'))
-				.map((value) => ({ authToken: value[1], username: value[0].split('_')[1] }));
-			if (!authToken) {
-				throw new HttpException('Unauthorized. No auth token', HttpStatus.UNAUTHORIZED);
-			}
-
 			const user = await this.userRepository.getUserByName(username);
 
-			if (!user || await this.crypt.validateHash(authToken, user.authToken)) {
-				throw new HttpException('Unauthorized. Invalid token', HttpStatus.UNAUTHORIZED);
+			if (!user) {
+				throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
 			}
+
+			return this.adapterUserGetRdo(user);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
 		}
 	}
 
-	public async signUp({ username }: UserCreateDto, response: Response): Promise<UserCreateRdo> {
+	public async signUp({ username, clientPublicKey }: UserCreateDto, response: Response): Promise<UserCreateRdo> {
 		const loggerContext = `${UserService.name}/${this.signUp.name}`;
 
 		try {
@@ -65,9 +65,12 @@ export class UserService {
 				throw new HttpException('This username is taken', HttpStatus.BAD_REQUEST);
 			}
 
-			const secret = this.speakeasy.generateSecret(username);
+			const publicKey = this.crypt.getPublicKey(clientPublicKey);
 
-			const authToken = this.crypt.uuidV5(username);
+			const secret = this.speakeasy.generateSecret(username);
+			const encryptedSecretBase32 = this.crypt.globalEncrypt(secret.base32);
+
+			const authToken = this.crypt.globalEncrypt(username);
 			const authTokenHash = await this.crypt.hash(authToken, this.config.get('AUTH_TOKEN_SALT_ROUNDS'));
 
 			const recoverySecret = this.crypt.shortPassGen();
@@ -80,21 +83,24 @@ export class UserService {
 
 			const newUser = await this.userRepository.createUser({
 				username,
-				secretBase32: secret.base32,
+				secretBase32: encryptedSecretBase32,
 				recoverySecret: recoverySecretHash,
 				createdAt,
 				authToken: authTokenHash,
 				qrImg: fileName,
 			});
 
+			const encryptedQrImg = this.crypt.encrypt(publicKey, newUser.qrImg);
+			const encryptedRecoverySecret = this.crypt.encrypt(publicKey, recoverySecret);
+
 			this.logger.info(`${username} registered!`, loggerContext, username);
 
-			response.cookie(`auth_token_${username}`, authToken, COOKIE_OPTIONS);
+			response.cookie('authToken', authToken, COOKIE_OPTIONS);
 
 			return {
 				username: newUser.username,
-				qrImg: newUser.qrImg,
-				recoverySecret
+				qrImg: encryptedQrImg,
+				recoverySecret: encryptedRecoverySecret,
 			};
 		} catch (error) {
 			this.logger.error(error, loggerContext);
@@ -125,13 +131,16 @@ export class UserService {
 				throw new HttpException('This user does not exist', HttpStatus.NOT_FOUND);
 			}
 
-			if (!this.speakeasy.validateCode(user.secretBase32, verificationCode)) {
+			const secretBase32 = this.crypt.globalDecrypt(user.secretBase32);
+
+			const isVerificationCodeValid = this.speakeasy.validateCode(secretBase32, verificationCode);
+			if (!isVerificationCodeValid) {
 				throw new HttpException('Doesn\'t correct 2FA code', HttpStatus.UNAUTHORIZED);
 			}
 
 			this.logger.info(`${username} logged in!`, loggerContext, username);
 
-			response.cookie(`auth_token_${username}`, user.authToken, COOKIE_OPTIONS);
+			this.setAuthCookie(username, response);
 
 			return this.adapterUserGetRdo(user);
 		} catch (error) {
@@ -140,14 +149,90 @@ export class UserService {
 		}
 	}
 
-	public async logout(req: AuthCheckedRequest, response: Response): Promise<void> {
+	public async logout(request: AuthCheckedRequest, response: Response): Promise<void> {
 		const loggerContext = `${UserService.name}/${this.logout.name}`;
 
 		try {
-			response.clearCookie(`auth_token_${req.user.username}`, COOKIE_OPTIONS);
+			const user = request.user;
+			this.logger.info(`${user.username} logged out!`, loggerContext, user.username);
+
+			response.clearCookie('authToken', COOKIE_OPTIONS);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
 		}
 	}
+
+	public async softDelete(request: AuthCheckedRequest, response: Response): Promise<void> {
+		const loggerContext = `${UserService.name}/${this.softDelete.name}`;
+
+		try {
+			await this.logout(request, response);
+
+			const user = await this.userRepository.softDeleteUser(request.user.username);
+			this.logger.info(`${user.username} soft DELETED!`, loggerContext, user.username);
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async recoverSoftDeleted(
+		{ username, recoverySecret, clientPublicKey }: UserRecoveryDto,
+		response: Response,
+	): Promise<UserCreateRdo> {
+		const loggerContext = `${UserService.name}/${this.recoverSoftDeleted.name}`;
+
+		try {
+			const user = await this.userRepository.getUserByName(username);
+
+			if (!user) {
+				throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
+			}
+
+			const isRecoverySecretValid = await this.crypt.validateUuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
+			if (!isRecoverySecretValid) {
+				throw new HttpException('Invalid recovery secret', HttpStatus.BAD_REQUEST);
+			}
+
+			const publicKey = this.crypt.getPublicKey(clientPublicKey);
+
+			const recoveredUser = await this.userRepository.softRecoveryUser(username);
+
+			const encryptedQrImg = this.crypt.encrypt(publicKey, recoveredUser.qrImg);
+			const encryptedRecoverySecret = this.crypt.encrypt(publicKey, recoverySecret);
+
+			this.setAuthCookie(username, response);
+
+			this.logger.info(`${username} RECOVERED from soft delete!`, loggerContext, username);
+
+			return {
+				username: recoveredUser.username,
+				qrImg: encryptedQrImg,
+				recoverySecret: encryptedRecoverySecret,
+			};
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	// СНАЧАЛО НАДО RoleGuard СДЕЛАТЬ, ПОТОМ ПЕРЕДЕЛАТЬ ЭТУ ФУНКЦИЮ
+	public async delete(request: AuthCheckedAdmin, username: string): Promise<void> {
+		const loggerContext = `${UserService.name}/${this.delete.name}`;
+
+		try {
+			const admin = request.admin;
+			if (!admin) {
+				throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
+			}
+			const user = await this.userRepository.deleteUser(username);
+			await this.qrService.deleteQrImg(user.qrImg);
+			this.logger.info(`${user.username} COMPLETELY DELETED by ${admin.username}!`, loggerContext, user.username);
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
 }

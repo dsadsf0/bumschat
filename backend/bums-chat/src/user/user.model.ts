@@ -34,10 +34,10 @@ export class Users {
     @IsString({ message: 'CreatedAt should be a string' })
 	createdAt: string;
 
-	@Prop({ type: Boolean, required: false, default: false })
+	@Prop({ type: Boolean, required: false, default: null })
 	@IsNotEmpty({ message: 'Need softDeleted' })
-    @IsBoolean({ message: 'SoftDeleted should be a string' })
-	softDeleted?: boolean;
+    @IsString({ message: 'SoftDeleted should be a string' })
+	softDeleted?: string;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);

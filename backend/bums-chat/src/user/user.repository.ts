@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { SnatchedService } from 'src/snatchedLogger/logger.service';
 import handleError from 'src/utils/errorHandler';
 import { Users } from './user.model';
+import { DEFAULT_DATE_FORMAT } from 'src/consts/dateFormat';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class UserRepository {
@@ -44,6 +46,49 @@ export class UserRepository {
 
 		try {
 			const user = await this.userModel.create(newUser);
+
+			return user;
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async softDeleteUser(username: string): Promise<Users> {
+		const loggerContext = `${UserRepository.name}/${this.softDeleteUser.name}`;
+
+		try {
+			const user = await this.userModel.findOneAndUpdate(
+				{ username },
+				{ $set: { softDeleted: dayjs().format(DEFAULT_DATE_FORMAT) } },
+				{ new: true }
+			).lean();
+
+			return user;
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async softRecoveryUser(username: string): Promise<Users> {
+		const loggerContext = `${UserRepository.name}/${this.softRecoveryUser.name}`;
+
+		try {
+			const user = await this.userModel.findOneAndUpdate({ username }, { $set: { softDeleted: null } }, { new: true }).lean();
+			
+			return user;
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async deleteUser(username: string): Promise<Users> {
+		const loggerContext = `${UserRepository.name}/${this.deleteUser.name}`;
+
+		try {
+			const user = await this.userModel.findOneAndDelete({ username }).lean();
 
 			return user;
 		} catch (error) {

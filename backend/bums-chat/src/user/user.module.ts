@@ -16,11 +16,11 @@ import { SpeakeasyService } from 'src/speakeasy/speakeasy.service';
 	providers: [
 		UserService,
 		UserRepository,
-		CryptoService,
-		QrService,
 		SpeakeasyService,
 		ConfigService,
-		SnatchedService
+		SnatchedService,
+		CryptoService,
+		QrService,
 	],
 })
 export class UserModule {}
