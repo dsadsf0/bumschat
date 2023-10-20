@@ -1,1 +1,0 @@
-export const UUID_NAMESPACE = '1d2d09d2-0dc5-4356-84ae-89092550b1ad'
