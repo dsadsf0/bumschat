@@ -3,19 +3,19 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
-import { Users } from './user.model';
+import { User } from './user.model';
 import { DEFAULT_DATE_FORMAT } from 'src/core/consts/dateFormat';
 import * as dayjs from 'dayjs';
 
 @Injectable()
 export class UserRepository {
 	constructor(
-		@InjectModel(Users.name)
-		private readonly userModel: Model<Users>,
+		@InjectModel(User.name)
+		private readonly userModel: Model<User>,
 		private readonly logger: SnatchedService
 	) {}
 
-	public async getUserByName(username: string): Promise<Users | null> {
+	public async getUserByName(username: string): Promise<User | null> {
 		const loggerContext = `${UserRepository.name}/${this.getUserByName.name}`;
 
 		try {
@@ -28,7 +28,7 @@ export class UserRepository {
 		}
 	}
 
-	public async getUserByAuthToken(authToken: string): Promise<Users | null> {
+	public async getUserByAuthToken(authToken: string): Promise<User | null> {
 		const loggerContext = `${UserRepository.name}/${this.getUserByAuthToken.name}`;
 
 		try {
@@ -41,7 +41,7 @@ export class UserRepository {
 		}
 	}
 
-	public async createUser(newUser: Users): Promise<Users> {
+	public async createUser(newUser: User): Promise<User> {
 		const loggerContext = `${UserRepository.name}/${this.createUser.name}`;
 
 		try {
@@ -54,7 +54,7 @@ export class UserRepository {
 		}
 	}
 
-	public async softDeleteUser(username: string): Promise<Users> {
+	public async softDeleteUser(username: string): Promise<User> {
 		const loggerContext = `${UserRepository.name}/${this.softDeleteUser.name}`;
 
 		try {
@@ -75,7 +75,7 @@ export class UserRepository {
 		}
 	}
 
-	public async softRecoveryUser(username: string): Promise<Users> {
+	public async softRecoveryUser(username: string): Promise<User> {
 		const loggerContext = `${UserRepository.name}/${this.softRecoveryUser.name}`;
 
 		try {
@@ -88,7 +88,7 @@ export class UserRepository {
 		}
 	}
 
-	public async deleteUser(username: string): Promise<Users> {
+	public async deleteUser(username: string): Promise<User> {
 		const loggerContext = `${UserRepository.name}/${this.deleteUser.name}`;
 
 		try {

@@ -1,12 +1,12 @@
-export interface DefaultPropsInterface {
-	className?: string
-}
+export type DefaultProps = {
+	className?: string;
+};
 
-export interface InputPropsInterface extends DefaultPropsInterface {
-	type: 'text',
-	value: string,
-	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
-	placeholder?: string,
-	title?: string,
-	autoFocus?: boolean,
-}
+export type InputProps = DefaultProps & {
+	type: 'text';
+	value: string;
+	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	placeholder?: string;
+	title?: string;
+	autoFocus?: boolean;
+};

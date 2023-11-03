@@ -1,9 +1,7 @@
-const mainRoutes = {
-	welcome: '/',
-	chats: '/chats',
-	login: '/login',
-	signup: '/signup',
-	recovery: '/recovery',
-}
-
-export default mainRoutes
+export const MainRoutes = {
+	Home: '/',
+	Welcome: '/welcome',
+	Login: '/login',
+	Signup: '/signup',
+	Recovery: '/recovery',
+};

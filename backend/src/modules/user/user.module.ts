@@ -4,15 +4,16 @@ import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { UserRepository } from './user.repository';
-import { Users, UsersSchema } from './user.model';
+import { User, UserSchema } from './user.model';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CryptoService } from 'src/modules/crypto/crypto.service';
 import { QrService } from 'src/modules/qr-service/qr.service';
 import { SpeakeasyService } from 'src/modules/speakeasy/speakeasy.service';
+import { CryptoModule } from '../crypto/crypto.module';
 
 @Module({
-	imports: [MongooseModule.forFeature([{ name: Users.name, schema: UsersSchema }])],
+	imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), CryptoModule],
 	controllers: [UserController],
-	providers: [UserService, UserRepository, SpeakeasyService, ConfigService, SnatchedService, CryptoService, QrService],
+	providers: [UserService, UserRepository, SpeakeasyService, QrService, ConfigService, SnatchedService],
+	exports: [UserService],
 })
 export class UserModule {}

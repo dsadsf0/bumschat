@@ -1,5 +1,6 @@
 export type AppConfigSchema = {
 	PORT: number;
+	SOCKET_PORT: number;
 	MONGO_CONNECT: string;
 	MONGO_NAME: string;
 	CLIENT_URL: string;

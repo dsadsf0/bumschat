@@ -1,83 +1,143 @@
-import axios, { AxiosError, HttpStatusCode } from "axios";
-import { API_URL } from './../index';
-import { ILoginRequest, IRejectOptions, ISignupResponse } from "@/types/api-services/UserServiceTypes";
-import { IUser } from "@/types/User";
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import axios, { AxiosError } from 'axios';
+import { User } from '@/types/User';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import { RejectOptions, RequestTokenResponse, SignupResponse, UsernameCheckResponse } from '@/types/api-services/user/responses';
+import { LoginRequest, RecoveryRequest, SignupRequest, UsernameCheckRequest } from '@/types/api-services/user/requests';
+import { SERVER_API_URI } from '..';
 
 const api = axios.create({
-    baseURL: API_URL + '/api/auth',
-    withCredentials: true,
+	baseURL: SERVER_API_URI,
+	headers: {
+		'ngrok-skip-browser-warning': 'true',
+	},
 });
 
 const Points = {
-    signup: '/signup',
-    authCheck: '/',
-    login: '/login',
-    logout: '/logout'
-}
+	Base: 'users',
+	Login: 'users/login',
+	UserNameCheck: 'users/username-check',
+	Logout: 'users/logout',
+	Recovery: 'users/recovery',
+	Qr: 'users/qr',
+	PublicKey: 'users/public-key',
+	GlobalKey: 'users/global-key',
+	RequestToken: 'users/request-token',
+} as const;
 
 export const UserService = {
-    signup: createAsyncThunk<ISignupResponse, string, IRejectOptions>(Points.signup, async (username, {rejectWithValue}) => {
-        try {            
-            const res = await api.post(Points.signup, { username });
-            return res.data;
-        } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                console.log(error.message);
-                return rejectWithValue(error?.response?.data || error.message);
-            }
-            return rejectWithValue('Unexpected signup error');
-        }
-    }),
+	signup: createAsyncThunk<SignupResponse, SignupRequest, RejectOptions>('/signUp', async ({ username, publicKey }, { rejectWithValue }) => {
+		try {
+			const res = await api.post(Points.Base, { username, clientPublicKey: publicKey });
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				return rejectWithValue(error?.response?.data?.message || error.message);
+			}
+			return rejectWithValue('Unexpected signup error');
+		}
+	}),
 
-    loginCheck: createAsyncThunk<boolean, string, IRejectOptions>(`${Points.login}Check`, async (username, {rejectWithValue}) => {
-        try {            
-            const res = await api.get(`${Points.login}/${username}`);
-            return res.status === HttpStatusCode.Ok;
-        } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                console.log(error);
-                return rejectWithValue(error?.response?.data || error.message);
-            }
-            return rejectWithValue('Unexpected loginCheck error');
-        }
-    }),
+	usernameCheck: createAsyncThunk<UsernameCheckResponse, UsernameCheckRequest, RejectOptions>(Points.UserNameCheck, async (UserDto, { rejectWithValue }) => {
+		try {
+			const res = await api.post(Points.UserNameCheck, UserDto);
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error);
+				return rejectWithValue(error?.response?.data?.message || error.message);
+			}
+			return rejectWithValue('Unexpected loginCheck error');
+		}
+	}),
 
-    authCheck: createAsyncThunk<IUser, void, IRejectOptions>(Points.authCheck, async (_, {rejectWithValue}) => {
-        try {            
-            const res = await api.get<IUser>(Points.authCheck);
-            return res.data;
-        } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                console.log(error.message);
-                return rejectWithValue(error?.response?.data || error.message);
-            }
-            return rejectWithValue('Unexpected authCheck error');
-        }
-    }),
+	getUser: createAsyncThunk<User, void, RejectOptions>('/get-user', async (_, { rejectWithValue }) => {
+		try {
+			const res = await api.get<User>(Points.Base);
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				return rejectWithValue(error?.response?.data?.message || error.message);
+			}
+			return rejectWithValue('Unexpected authCheck error');
+		}
+	}),
 
-    login: createAsyncThunk<IUser, ILoginRequest, IRejectOptions>(Points.login, async (body, {rejectWithValue}) => {
-        try {            
-            const res = await api.post<IUser>(Points.login, {...body});
-            return res.data;
-        } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                console.log(error.message);
-                return rejectWithValue(error?.response?.data || error.message);
-            }
-            return rejectWithValue('Unexpected login error');
-        }
-    }),
+	login: createAsyncThunk<User, LoginRequest, RejectOptions>(Points.Login, async (loginDto, { rejectWithValue }) => {
+		try {
+			const res = await api.post<User>(Points.Login, loginDto);
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				return rejectWithValue(error?.response?.data?.message || error.message);
+			}
+			return rejectWithValue('Unexpected login error');
+		}
+	}),
 
-    logout: createAsyncThunk<void, void, IRejectOptions>(Points.logout, async (_, {rejectWithValue}) => {
-        try {            
-            await api.get(Points.logout);
-        } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                console.log(error.message);
-                return rejectWithValue(error?.response?.data || error.message);
-            }
-            return rejectWithValue('Unexpected login error');
-        }
-    }),
-}
+	logout: createAsyncThunk<void, void, RejectOptions>(Points.Logout, async (_, { rejectWithValue }) => {
+		try {
+			await api.get(Points.Logout);
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				return rejectWithValue(error?.response?.data?.message || error.message);
+			}
+			return rejectWithValue('Unexpected logout error');
+		}
+	}),
+
+	recovery: createAsyncThunk<User, RecoveryRequest, RejectOptions>(Points.Recovery, async (recoveryDto, { rejectWithValue }) => {
+		try {
+			const res = await api.post<User>(Points.Recovery, recoveryDto);
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				return rejectWithValue(error?.response?.data?.message || error.message);
+			}
+			return rejectWithValue('Unexpected login error');
+		}
+	}),
+
+	getQr: async (): Promise<File> => {
+		try {
+			const res = await api.get(Points.Qr);
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				throw new Error('Error getting qr img');
+			}
+			throw new Error('Unexpected get qr error');
+		}
+	},
+
+	getPublicKey: async (): Promise<string> => {
+		try {
+			const res = await api.get(Points.PublicKey);
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				throw new Error('Error getting qr img');
+			}
+			throw new Error('Unexpected get public key error');
+		}
+	},
+
+	getToken: async (clientPublicKey: string): Promise<RequestTokenResponse> => {
+		try {
+			const res = await api.post<RequestTokenResponse>(Points.RequestToken, { clientPublicKey });
+			return res.data;
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				console.log(error.message);
+				throw new Error('Error getting token img');
+			}
+			throw new Error('Unexpected get token error');
+		}
+	},
+};

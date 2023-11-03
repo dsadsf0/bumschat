@@ -1,2 +1,2 @@
-import Recovery from "./Recovery";
+import Recovery from './Recovery';
 export default Recovery;

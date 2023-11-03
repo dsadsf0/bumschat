@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 
 export class UserLoginDto {
 	@ApiProperty({
@@ -10,6 +10,7 @@ export class UserLoginDto {
 	@IsNotEmpty({ message: 'Need username' })
 	@IsString({ message: 'Username should be a string' })
 	@Length(3, 25, { message: 'Username length should be between 3 and 25 characters' })
+	@Matches(/^[\p{L}A-Za-z \d_-]+$/g, { message: 'In username you can use only any Unicode letter character, " ", "-", "_"' })
 	public username: string;
 
 	@ApiProperty({
@@ -18,6 +19,6 @@ export class UserLoginDto {
 		type: String,
 	})
 	@IsNotEmpty({ message: 'Need verificationCode' })
-	@IsString({ message: 'VerificationCode should be a string' })
+	@IsString({ message: 'Verification code should be a string of encrypted 2FA code' })
 	public verificationCode: string;
 }

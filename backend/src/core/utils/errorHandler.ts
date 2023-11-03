@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets/errors/ws-exception';
 
-const handleError = (error: unknown): HttpException => {
+const handleError = (error: unknown): HttpException | WsException => {
 	if (error instanceof HttpException) {
 		throw error;
 	}

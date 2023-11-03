@@ -1,2 +1,2 @@
-import InputPrimary from "./InputPrimary";
+import InputPrimary from './InputPrimary';
 export default InputPrimary;

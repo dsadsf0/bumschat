@@ -12,7 +12,7 @@ export class UserCreateDto {
 	@IsString({ message: 'Username should be a string' })
 	@Transform(({ value }) => value.trim())
 	@Length(3, 25, { message: 'Username length should be between 3 and 25 characters' })
-	@Matches(/[\p{L}A-z \d\_\-]+$/g, { message: 'In username you can use only any Unicode letter character, " ", "-", "_"' })
+	@Matches(/^[\p{L}A-Za-z \d_-]+$/g, { message: 'In username you can use only any Unicode letter character, " ", "-", "_"' })
 	public username: string;
 
 	@ApiProperty({

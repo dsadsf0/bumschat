@@ -2,24 +2,24 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigSchema } from 'src/app/app.schema';
 import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
-import { UserCreateDto } from './dto/user-create.dto';
+import { UserCreateDto } from './dto/create-user.dto';
 import handleError from 'src/core/utils/errorHandler';
 import { UserRepository } from './user.repository';
 import { QrService } from 'src/modules/qr-service/qr.service';
 import * as dayjs from 'dayjs';
-import { UserCreateRdo } from './rdo/user-create.rdo';
+import { UserCreateRdo } from './rdo/create-user.rdo';
 import { Response } from 'express';
-import { CryptoService } from './../crypto/crypto.service';
+import { CryptoService } from 'src/modules/crypto/crypto.service';
 import { DEFAULT_DATE_FORMAT } from 'src/core/consts/dateFormat';
 import { COOKIE_OPTIONS } from 'src/core/consts/cookies';
 import { SpeakeasyService } from 'src/modules/speakeasy/speakeasy.service';
-import { UserGetRdo } from './rdo/user-get.rdo';
-import { Users } from './user.model';
-import { UserLoginDto } from './dto/user-login.dto';
+import { UserGetRdo } from './rdo/get-user.rdo';
+import { User } from './user.model';
+import { UserLoginDto } from './dto/login-user.dto';
 import { AuthCheckedRequest } from './types/authCheckedTypes';
-import { UserRecoveryDto } from './dto/user-recovery.dto';
-import { UserCheckNameDto } from './dto/user-chek-username.dto';
-import { UserRoles } from './../../core/consts/roles';
+import { UserRecoveryDto } from './dto/recovery-user.dto';
+import { UserCheckNameDto } from './dto/check-username.dto';
+import { UserRoles } from 'src/core/consts/roles';
 
 @Injectable()
 export class UserService {
@@ -32,7 +32,7 @@ export class UserService {
 		private readonly logger: SnatchedService
 	) {}
 
-	private adapterUserGetRdo(user: Users): UserGetRdo {
+	private adapterUserGetRdo(user: User): UserGetRdo {
 		return { username: user.username };
 	}
 
@@ -41,11 +41,11 @@ export class UserService {
 		response.cookie('authToken', authToken, COOKIE_OPTIONS);
 	}
 
-	public getGlobalPublicKey(): string {
-		const loggerContext = `${UserService.name}/${this.getGlobalPublicKey.name}`;
+	public getPublicKey(): string {
+		const loggerContext = `${UserService.name}/${this.getPublicKey.name}`;
 
 		try {
-			return this.crypt.getGlobalPublicKeyString();
+			return this.crypt.getPublicKey();
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -69,11 +69,11 @@ export class UserService {
 		}
 	}
 
-	public async getUser(username: string): Promise<UserGetRdo> {
-		const loggerContext = `${UserService.name}/${this.getUser.name}`;
+	public async getUserByToken(token: string): Promise<UserGetRdo> {
+		const loggerContext = `${UserService.name}/${this.getUserByToken.name}`;
 
 		try {
-			const user = await this.userRepository.getUserByName(username);
+			const user = await this.userRepository.getUserByAuthToken(token);
 
 			if (!user || user.softDeleted) {
 				throw new HttpException('User with this username does not exist or deleted', HttpStatus.NOT_FOUND);
@@ -95,16 +95,14 @@ export class UserService {
 				throw new HttpException('This username is taken', HttpStatus.BAD_REQUEST);
 			}
 
-			const publicKey = this.crypt.getPublicKey(clientPublicKey);
-
 			const secret = this.speakeasy.generateSecret(username);
 			const encryptedSecretBase32 = this.crypt.globalEncrypt(secret.base32);
 
 			const authToken = this.crypt.globalEncrypt(username);
-			const authTokenHash = await this.crypt.hash(authToken, this.config.get('AUTH_TOKEN_SALT_ROUNDS'));
+			const authTokenHash = await this.crypt.uuidAndHash(authToken, this.config.get('AUTH_TOKEN_SALT_ROUNDS'));
 
 			const recoverySecret = this.crypt.shortPassGen();
-			const encryptedRecoverySecret = this.crypt.encrypt(publicKey, recoverySecret);
+			const recoverySecretClientEncrypted = this.crypt.encrypt(recoverySecret, clientPublicKey);
 			const recoverySecretHash = await this.crypt.uuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
 
 			const treatedQRData = await this.qrService.otpAuthUrlToQrData(secret.otpauth_url);
@@ -120,6 +118,7 @@ export class UserService {
 				authToken: authTokenHash,
 				qrImg: fileName,
 				role: UserRoles.User,
+				softDeleted: null,
 			});
 
 			this.logger.info(`${username} registered!`, loggerContext, username);
@@ -128,8 +127,7 @@ export class UserService {
 
 			return {
 				username: newUser.username,
-				qrImg: fileName,
-				recoverySecret: encryptedRecoverySecret,
+				recoverySecret: recoverySecretClientEncrypted,
 			};
 		} catch (error) {
 			this.logger.error(error, loggerContext);
@@ -162,7 +160,7 @@ export class UserService {
 
 			const secretBase32 = this.crypt.globalDecrypt(user.secretBase32);
 
-			const verificationCode = this.crypt.globalDecrypt(encryptedVerificationCode);
+			const verificationCode = this.crypt.decrypt(encryptedVerificationCode);
 			const isVerificationCodeValid = this.speakeasy.validateCode(secretBase32, verificationCode);
 			if (!isVerificationCodeValid) {
 				throw new HttpException('Does not correct 2FA code', HttpStatus.UNAUTHORIZED);
@@ -207,10 +205,7 @@ export class UserService {
 		}
 	}
 
-	public async recoverSoftDeleted(
-		{ username, recoverySecret: clientEncryptedRecoverySecret, clientPublicKey }: UserRecoveryDto,
-		response: Response
-	): Promise<UserCreateRdo> {
+	public async recoverSoftDeleted({ username, recoverySecret: clientEncryptedRecoverySecret }: UserRecoveryDto, response: Response): Promise<UserGetRdo> {
 		const loggerContext = `${UserService.name}/${this.recoverSoftDeleted.name}`;
 
 		try {
@@ -220,15 +215,12 @@ export class UserService {
 				throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
 			}
 
-			const recoverySecret = this.crypt.globalDecrypt(clientEncryptedRecoverySecret);
+			const recoverySecret = this.crypt.decrypt(clientEncryptedRecoverySecret);
 
 			const isRecoverySecretValid = await this.crypt.validateUuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
 			if (!isRecoverySecretValid) {
 				throw new HttpException('Invalid recovery secret', HttpStatus.BAD_REQUEST);
 			}
-
-			const publicKey = this.crypt.getPublicKey(clientPublicKey);
-			const encryptedRecoverySecret = this.crypt.encrypt(publicKey, recoverySecret);
 
 			const recoveredUser = await this.userRepository.softRecoveryUser(username);
 
@@ -240,18 +232,13 @@ export class UserService {
 				this.logger.info(`${username} recovered access to account!`, loggerContext, username);
 			}
 
-			return {
-				username: recoveredUser.username,
-				qrImg: recoveredUser.qrImg,
-				recoverySecret: encryptedRecoverySecret,
-			};
+			return this.adapterUserGetRdo(recoveredUser);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
 		}
 	}
 
-	// СНАЧАЛО НАДО RoleGuard СДЕЛАТЬ, ПОТОМ ПЕРЕДЕЛАТЬ ЭТУ ФУНКЦИЮ
 	public async delete(request: AuthCheckedRequest, username: string): Promise<void> {
 		const loggerContext = `${UserService.name}/${this.delete.name}`;
 
@@ -263,6 +250,27 @@ export class UserService {
 			const user = await this.userRepository.deleteUser(username);
 			await this.qrService.deleteQrImg(user.qrImg);
 			this.logger.info(`${user.username} COMPLETELY DELETED by ${admin.username}!`, loggerContext, user.username);
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async getAuthToken(request: AuthCheckedRequest, publicKey: string): Promise<string> {
+		const loggerContext = `${UserService.name}/${this.delete.name}`;
+
+		try {
+			const user = request.user;
+
+			if (!user) {
+				throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
+			}
+
+			const { authToken } = await this.userRepository.getUserByName(user.username);
+
+			const encryptedToken = this.crypt.encrypt(authToken, publicKey);
+
+			return encryptedToken;
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

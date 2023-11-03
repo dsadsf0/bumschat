@@ -5,129 +5,88 @@ import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import * as uuid from 'uuid';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
-import * as util from 'util';
-
-const generateKeyPair = util.promisify(crypto.generateKeyPair);
-
-const PUBLIC_KEY_OPTIONS = {
-	type: 'spki',
-	format: 'pem',
-} as const;
-
-const PRIVATE_KEY_OPTIONS = {
-	type: 'pkcs8',
-	format: 'pem',
-} as const;
+import * as NodeRsa from 'node-rsa';
 
 @Injectable()
 export class CryptoService {
+	private globalRsa: NodeRsa;
+
+	private cryptRsa: NodeRsa;
+
+	private encryptRsa: NodeRsa;
+
 	constructor(
 		private readonly config: ConfigService<AppConfigSchema>,
 		private readonly logger: SnatchedService
-	) {}
-
-	public getGlobalPublicKeyString(): string {
-		return this.config.get('GLOBAL_PUBLIC_KEY').replace(/\\n/g, '\n');
+	) {
+		this.cryptRsa = new NodeRsa({ b: 2048 });
+		this.encryptRsa = new NodeRsa();
+		this.globalRsa = new NodeRsa();
+		this.globalRsa.importKey(this.config.get('GLOBAL_PUBLIC_KEY').replace(/\\n/g, '\n'), 'public');
+		this.globalRsa.importKey(this.config.get('GLOBAL_PRIVATE_KEY').replace(/\\n/g, '\n'), 'private');
 	}
 
-	private getGlobalPrivateString(): string {
-		return this.config.get('GLOBAL_PRIVATE_KEY').replace(/\\n/g, '\n');
+	public updateKeyPair(): void {
+		this.cryptRsa.generateKeyPair();
 	}
 
-	public getGlobalPublicKey(): crypto.KeyObject {
-		return this.getPublicKey(this.getGlobalPublicKeyString());
-	}
-
-	public getGlobalPrivateKey(): crypto.KeyObject {
-		return this.getPrivateKey(this.getGlobalPrivateString());
-	}
-
-	public globalEncrypt(data: string): string {
-		const loggerContext = `${CryptoService.name}/${this.globalEncrypt.name}`;
+	public getGlobalPublicKey(): string {
+		const loggerContext = `${CryptoService.name}/${this.getGlobalPublicKey.name}`;
 
 		try {
-			const publcKey = this.getGlobalPublicKey();
-			return this.encrypt(publcKey, data);
+			return this.globalRsa.exportKey('public');
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
 		}
 	}
 
-	public globalDecrypt(data: string): string {
-		const loggerContext = `${CryptoService.name}/${this.globalDecrypt.name}`;
-
-		try {
-			const privateKey = this.getGlobalPrivateKey();
-			return this.decrypt(privateKey, data);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
-
-	public async generateKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
-		const loggerContext = `${CryptoService.name}/${this.generateKeyPair.name}`;
-
-		try {
-			return await generateKeyPair('rsa', {
-				modulusLength: 4096,
-				publicKeyEncoding: PUBLIC_KEY_OPTIONS,
-				privateKeyEncoding: {
-					...PRIVATE_KEY_OPTIONS,
-					cipher: 'aes-256-cbc',
-					passphrase: this.config.get('PASS_PHRASE'),
-				},
-			});
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
-
-	public getPublicKey(publicKeyString: string): crypto.KeyObject {
+	public getPublicKey(): string {
 		const loggerContext = `${CryptoService.name}/${this.getPublicKey.name}`;
 
 		try {
-			return crypto.createPublicKey(publicKeyString);
+			return this.cryptRsa.exportKey('public');
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
 		}
 	}
 
-	public getPrivateKey(privateKeyString: string): crypto.KeyObject {
-		const loggerContext = `${CryptoService.name}/${this.getPrivateKey.name}`;
-
-		try {
-			return crypto.createPrivateKey({
-				key: privateKeyString,
-				passphrase: this.config.get('PASS_PHRASE'),
-				...PRIVATE_KEY_OPTIONS,
-			});
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
-
-	public encrypt(publicKey: crypto.KeyObject, data: string): string {
+	public encrypt(data: string, publicKey: string): string {
 		const loggerContext = `${CryptoService.name}/${this.encrypt.name}`;
-
 		try {
-			return crypto.publicEncrypt(publicKey, Buffer.from(data)).toString('base64');
+			this.encryptRsa.importKey(publicKey, 'public');
+			return this.encryptRsa.encrypt(data, 'base64');
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
 		}
 	}
 
-	public decrypt(privateKey: crypto.KeyObject, encryptedData: string): string {
+	public decrypt(encryptedData: string): string {
 		const loggerContext = `${CryptoService.name}/${this.decrypt.name}`;
-
 		try {
-			return crypto.privateDecrypt(privateKey, Buffer.from(encryptedData, 'base64')).toString('utf8');
+			return this.cryptRsa.decrypt(encryptedData, 'utf8');
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public globalDecrypt(encryptedData: string): string {
+		const loggerContext = `${CryptoService.name}/${this.globalDecrypt.name}`;
+		try {
+			return this.globalRsa.decrypt(encryptedData, 'utf8');
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public globalEncrypt(encryptedData: string): string {
+		const loggerContext = `${CryptoService.name}/${this.globalEncrypt.name}`;
+		try {
+			return this.globalRsa.encrypt(encryptedData, 'base64');
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

@@ -1,42 +1,74 @@
-import Chat from "@/pages/chat";
-import Login from "@/pages/login";
-import Signup from "@/pages/signup";
-import mainRoutes from "@/routes/mainRoutes";
-import { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { useAppDispatch } from './../hooks/useStore';
+import React, { useState } from 'react';
+import Home from '@/pages/home';
+import Login from '@/pages/login';
+import Signup from '@/pages/signup';
+import Recovery from '@/pages/recovery';
+import Welcome from '@/pages/welcome';
+import Loader from '@/components/UI/loader';
+import { MainRoutes } from '@/routes/mainRoutes';
+import { useEffect } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { UserService } from '@/api/services/UserService';
-import { useAppSelector } from '@/hooks/useStore';
-import Loader from "@/components/UI/loader";
-import { getUserStateLoading } from "@/store/user/UserSelector";
-import Recovery from "@/pages/recovery";
-import Welcome from "@/pages/welcome";
+import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
+import { getCrypt, initCrypt } from '@/utils/crypt/init-crypt';
+import { getUser } from '@/store/user/UserSelector';
+import { initSocket } from '@/utils/socket/init-socket';
 
-const App = (): JSX.Element => {
+const App: React.FC = () => {
 	const dispatch = useAppDispatch();
-	const {auth: IsAuthChecking} = useAppSelector(getUserStateLoading);
+	const user = useAppSelector(getUser);
+	const [isAppInit, setIsAppInit] = useState<boolean>(false);
+
+	const initApp = async (): Promise<void> => {
+		setIsAppInit(false);
+		await Promise.all([dispatch(UserService.getUser()), initCrypt()]);
+		setIsAppInit(true);
+	};
+
+	const getAndTreatToken = async (username: string): Promise<string> => {
+		const crypt = getCrypt();
+		// const clientPublicKey = crypt.getPublicKey();
+		// const res = await UserService.getToken(clientPublicKey);
+		// const token = crypt.decrypt(res.token);
+		// return crypt.encrypt(`${token}_${username}`, res.publicKey);
+
+		const token = '$2b$12$JfOZUDkk7ZdjYqVl6GJ7.uocWTJX5bHibXMU6xACT08r.2RBxk7ve';
+		const publicKey = await UserService.getPublicKey();
+		return crypt.encrypt(`${token}_${username}`, publicKey);
+	};
+
+	const connectToSocket = async (username: string): Promise<void> => {
+		const token = await getAndTreatToken(username);
+		console.log('connecting to socket');
+		initSocket(token);
+	};
 
 	useEffect(() => {
-		dispatch(UserService.authCheck());
+		initApp();
 	}, []);
 
-	if (IsAuthChecking) {
-		return (
-			<Loader/>
-		)
+	useEffect(() => {
+		connectToSocket('test');
+		// if (user) {
+		// 	connectToSocket(user.username);
+		// }
+	}, [user]);
+
+	if (!isAppInit) {
+		return <Loader />;
 	}
 
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route path={mainRoutes.welcome} element={<Welcome />} />
-				<Route path={mainRoutes.chats} element={<Chat />} />
-				<Route path={mainRoutes.login} element={<Login />} />
-				<Route path={mainRoutes.signup} element={<Signup />} />
-				<Route path={mainRoutes.recovery} element={<Recovery />} />
+				<Route path={MainRoutes.Welcome} element={<Welcome />} />
+				<Route path={MainRoutes.Home} element={<Home />} />
+				<Route path={MainRoutes.Login} element={<Login />} />
+				<Route path={MainRoutes.Signup} element={<Signup />} />
+				<Route path={MainRoutes.Recovery} element={<Recovery />} />
 			</Routes>
 		</BrowserRouter>
-	)
-}
+	);
+};
 
-export default App
+export default App;

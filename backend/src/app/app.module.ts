@@ -8,7 +8,8 @@ import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
 import { UserModule } from 'src/modules/user/user.module';
 import * as Joi from 'joi';
 import { QrService } from 'src/modules/qr-service/qr.service';
-import { CryptoService } from 'src/modules/crypto/crypto.service';
+import { SocketModule } from 'src/modules/socket/socket.module';
+import { CryptoModule } from 'src/modules/crypto/crypto.module';
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { CryptoService } from 'src/modules/crypto/crypto.service';
 			envFilePath: `.${process.env.NODE_ENV}.env`,
 			validationSchema: Joi.object<AppConfigSchema, true>({
 				PORT: Joi.number().required(),
+				SOCKET_PORT: Joi.number().required(),
 				MONGO_CONNECT: Joi.string().required(),
 				MONGO_NAME: Joi.string().required(),
 				CLIENT_URL: Joi.string().required(),
@@ -30,9 +32,11 @@ import { CryptoService } from 'src/modules/crypto/crypto.service';
 		MongooseModule.forRoot(process.env.MONGO_CONNECT, {
 			dbName: process.env.MONGO_NAME,
 		}),
+		CryptoModule,
 		UserModule,
+		SocketModule,
 	],
 	controllers: [AppController],
-	providers: [AppService, CryptoService, QrService, ConfigService, SnatchedService],
+	providers: [AppService, QrService, ConfigService, SnatchedService],
 })
 export class AppModule {}

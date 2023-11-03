@@ -1,24 +1,25 @@
-import { InputPropsInterface } from "@/types/DefaultProps";
-import classNames from "classnames";
-import cl from './inputPrimaty.module.scss';
+import React from 'react';
+import classNames from 'classnames';
+import cl from './inputPrimary.module.scss';
 import { memo } from 'react';
+import { InputProps } from '@/types/defaultProps';
 
-interface Props extends InputPropsInterface {
-    style: 'default' | 'big',
-    isError?: boolean
-}
+type Props = InputProps & {
+	style: 'default' | 'big';
+	isError?: boolean;
+};
 
-const InputPrimary = memo(({ type, className, onChange, value, placeholder, style, title, isError, autoFocus }: Props): JSX.Element => {
-    return (
-        <input
-            className={classNames(cl.input, cl[`input_${style}`], {[cl._error]: isError}, className)} 
-            type={type} 
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            title={title}
-        />
-    )
-})
+const InputPrimary: React.FC<Props> = memo(({ type, className, onChange, value, placeholder, style, title, isError }) => {
+	return (
+		<input
+			className={classNames(cl.input, cl[`input_${style}`], { [cl._error]: isError }, className)}
+			type={type}
+			value={value}
+			onChange={onChange}
+			placeholder={placeholder}
+			title={title}
+		/>
+	);
+});
 
-export default InputPrimary
+export default InputPrimary;

@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString, Length } from 'class-validator';
 import { UserRolesValues } from 'src/core/consts/roles';
 
 @Schema()
-export class Users {
+export class User {
 	@Prop({ type: String, required: true, unique: true })
 	@IsNotEmpty({ message: 'Need username' })
 	@IsString({ message: 'Username should be a string' })
@@ -38,10 +38,10 @@ export class Users {
 	@Prop({ type: String, required: false, default: null })
 	@IsNotEmpty({ message: 'Need softDeleted' })
 	@IsString({ message: 'SoftDeleted should be a string' })
-	softDeleted?: string;
+	softDeleted: string | null;
 
 	@Prop({ type: String, required: false, default: 'user' })
 	role: UserRolesValues;
 }
 
-export const UsersSchema = SchemaFactory.createForClass(Users);
+export const UserSchema = SchemaFactory.createForClass(User);
