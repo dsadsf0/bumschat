@@ -121,12 +121,12 @@ export class UserService {
 				softDeleted: null,
 			});
 
-			this.logger.info(`${username} registered!`, loggerContext, username);
+			this.logger.info(`Registered new user ${username}!`, loggerContext, username);
 
 			response.cookie('authToken', authToken, COOKIE_OPTIONS);
 
 			return {
-				username: newUser.username,
+				user: this.adapterUserGetRdo(newUser),
 				recoverySecret: recoverySecretClientEncrypted,
 			};
 		} catch (error) {
@@ -182,7 +182,7 @@ export class UserService {
 
 		try {
 			const user = request.user;
-			this.logger.info(`${user.username} logged out!`, loggerContext, user.username);
+			this.logger.info(`Logged out ${user.username}!`, loggerContext, user.username);
 
 			response.clearCookie('authToken', COOKIE_OPTIONS);
 		} catch (error) {
@@ -198,7 +198,7 @@ export class UserService {
 			const user = await this.userRepository.softDeleteUser(request.user.username);
 
 			await this.logout(request, response);
-			this.logger.info(`${user.username} soft DELETED!`, loggerContext, user.username);
+			this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, user.username);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -227,9 +227,9 @@ export class UserService {
 			this.setAuthCookie(username, response);
 
 			if (user.softDeleted) {
-				this.logger.info(`${username} RECOVERED from soft delete!`, loggerContext, username);
+				this.logger.info(`RECOVERED ${username} from soft delete!`, loggerContext, username);
 			} else {
-				this.logger.info(`${username} recovered access to account!`, loggerContext, username);
+				this.logger.info(`Recovered ${username} access to account!`, loggerContext, username);
 			}
 
 			return this.adapterUserGetRdo(recoveredUser);
@@ -249,7 +249,7 @@ export class UserService {
 			}
 			const user = await this.userRepository.deleteUser(username);
 			await this.qrService.deleteQrImg(user.qrImg);
-			this.logger.info(`${user.username} COMPLETELY DELETED by ${admin.username}!`, loggerContext, user.username);
+			this.logger.info(`COMPLETELY DELETED user ${user.username} by ${admin.username}!`, loggerContext, user.username);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

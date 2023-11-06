@@ -37,7 +37,7 @@ const JustSigned: React.FC<Props> = ({ pass }) => {
 						.
 					</p>
 				</div>
-				<img src={`${SERVER_API_URI}/qr`} alt="" />
+				<img src={`${SERVER_API_URI}/users/qr`} alt="" />
 				<Link className={classnames(cl['just-signed__login'])} to={MainRoutes.Home}>
 					Go to chatting!
 				</Link>

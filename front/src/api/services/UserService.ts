@@ -10,6 +10,7 @@ const api = axios.create({
 	headers: {
 		'ngrok-skip-browser-warning': 'true',
 	},
+	withCredentials: true,
 });
 
 const Points = {

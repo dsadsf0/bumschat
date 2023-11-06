@@ -32,9 +32,9 @@ const Home: React.FC = () => {
 				))}
 			</div>
 			<div>
-				<input type="text" value={message} onChange={(e): void => setMessage(e.target.value)} placeholder="Enter your message" />
+				{/* <input type="text" value={message} onChange={(e): void => setMessage(e.target.value)} placeholder="Enter your message" />
 				<button onClick={sendMessage}>Send</button>
-				<button onClick={() => dispatch(UserService.logout())}>Logout</button>
+				<button onClick={() => dispatch(UserService.logout())}>Logout</button> */}
 			</div>
 		</div>
 	);

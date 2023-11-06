@@ -66,6 +66,7 @@ export const UserSlice = createSlice({
 			.addCase(UserService.signup.fulfilled, (state, action) => {
 				state.isLoading.signup = false;
 				state.error.signup = '';
+				console.log(action.payload);
 				state.user = action.payload.user;
 			})
 			.addCase(UserService.signup.rejected, (state, action) => {

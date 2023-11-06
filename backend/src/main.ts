@@ -11,7 +11,7 @@ async function bootstrap(): Promise<void> {
 
 	const app = await NestFactory.create(AppModule);
 
-	app.enableCors({ origin: '*' });
+	app.enableCors({ origin: 'http://176.212.63.19:5173', credentials: true });
 	app.use(cookieParser());
 	app.useGlobalPipes(new ValidationPipe({ transform: true }));
 	app.setGlobalPrefix(Endpoints.Global);

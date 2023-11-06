@@ -6,7 +6,6 @@ export type RejectOptions = {
 
 export type SignupResponse = {
 	user: User;
-	qrImg: string;
 	recoverySecret: string;
 };
 

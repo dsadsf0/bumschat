@@ -16,12 +16,15 @@ export class SocketService {
 	async authMiddleware(client: Socket): Promise<void> {
 		const encryptedToken = client.handshake.auth.token as string;
 
+		console.log(encryptedToken);
+
 		if (!encryptedToken) {
 			throw new WsException(`Client with id: ${client.id} does not have token!`);
 		}
 
 		try {
-			this.crypt.decrypt(encryptedToken);
+			const token = this.crypt.decrypt(encryptedToken);
+			console.log(token);
 		} catch (error) {
 			throw new WsException(`Client with id: ${client.id} have invalid token!`);
 		}

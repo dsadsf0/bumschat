@@ -67,7 +67,7 @@ const Signup: React.FC = () => {
 				value={username}
 				onChange={handleSetUsername}
 				placeholder={signupError || 'Enter your username'}
-				title={signupError || 'In username you can use only any Unicode letter character, " ", "-", "_".'}
+				title={'In username you can use only any Unicode letter character, " ", "-", "_".'}
 				isError={signupError !== ''}
 			/>
 			{isSigningUp && <Loader />}

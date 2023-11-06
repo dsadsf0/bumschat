@@ -1,12 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserGetRdo } from './get-user.rdo';
 
 export class UserCreateRdo {
 	@ApiProperty({
-		description: 'Username of account',
-		example: 'user',
-		type: String,
+		description: 'User object',
+		example: { username: 'user' },
+		type: UserGetRdo,
 	})
-	public username: string;
+	public user: UserGetRdo;
 
 	@ApiProperty({
 		description: 'Secret password (encrypted by clientPublicKey), that would be necessary to recover account if you lost 2FA or delete your account',

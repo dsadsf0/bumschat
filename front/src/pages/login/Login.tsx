@@ -2,8 +2,6 @@ import React from 'react';
 import { UserService } from '@/api/services/UserService';
 import InputPrimary from '@/components/UI/inputs/primary-input';
 import { memo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { MainRoutes } from '@/routes/mainRoutes';
 import { useAppSelector } from '@/hooks/useStore';
 import { getUser } from '@/store/user/UserSelector';
 import { useAppDispatch } from '@/hooks/useStore';
@@ -13,6 +11,7 @@ import { getUserStateLoading } from '@/store/user/UserSelector';
 import { setUserError } from '@/store/user/UserSlice';
 import ValidationService from '@/utils/validation';
 import { getCrypt } from '@/utils/crypt/init-crypt';
+import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 
 const Login: React.FC = memo(() => {
 	const [username, setUsername] = useState<string>('');
@@ -75,7 +74,7 @@ const Login: React.FC = memo(() => {
 	};
 
 	if (user) {
-		return <Navigate to={MainRoutes.Home} />;
+		return <AlreadyLogin />;
 	}
 
 	if (isVerified) {
