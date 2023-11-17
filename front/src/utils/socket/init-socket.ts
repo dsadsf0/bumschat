@@ -9,8 +9,9 @@ const socket: Socket = io(SERVER_SOCKET_URI, {
 export const initSocket = (encryptedToken: string): void => {
 	socket.auth = { token: encryptedToken };
 	socket.connect();
+
+	socket.on('connection', () => {});
 	console.log('socket', socket);
-	setTimeout(async () => console.log('socket connected :', (await getSocket()).connected), 1000);
 };
 
 export const getSocket = async (): Promise<Socket> => {

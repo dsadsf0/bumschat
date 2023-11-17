@@ -4,4 +4,4 @@ export const MainRoutes = {
 	Login: '/login',
 	Signup: '/signup',
 	Recovery: '/recovery',
-};
+} as const;

@@ -24,7 +24,6 @@ import { CryptoModule } from 'src/modules/crypto/crypto.module';
 				PASS_SALT_ROUNDS: Joi.number().required(),
 				AUTH_TOKEN_SALT_ROUNDS: Joi.number().required(),
 				UUID_NAMESPACE: Joi.string().required(),
-				PASS_PHRASE: Joi.string().required(),
 				GLOBAL_PUBLIC_KEY: Joi.string().required(),
 				GLOBAL_PRIVATE_KEY: Joi.string().required(),
 			}),
