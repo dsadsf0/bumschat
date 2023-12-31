@@ -30,4 +30,6 @@ lerna-debug.log*
 # IDE - VSCode
 .vscode
 
-QR-codies
+QR-codes
+
+.*.env

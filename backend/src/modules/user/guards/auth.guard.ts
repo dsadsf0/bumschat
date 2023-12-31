@@ -19,20 +19,27 @@ export class AuthGuard implements CanActivate {
 		try {
 			const request: AuthCheckedRequest = context.switchToHttp().getRequest();
 
-			const { authToken } = request.cookies ? request.cookies : { authToken: null };
+			const { authToken } = request.cookies || { authToken: null };
 			if (!authToken) {
 				throw new HttpException('Unauthorized. No auth token.', HttpStatus.UNAUTHORIZED);
 			}
 
-			const username = this.crypt.globalDecrypt(authToken);
+			let username = '';
+
+			try {
+				username = this.crypt.globalDecryptPrivate(authToken);
+			} catch (error) {
+				throw new HttpException('Unauthorized. Invalid token.', HttpStatus.UNAUTHORIZED);
+			}
+
 			const user = await this.userRepository.getUserByName(username);
 
-			if (!user) {
+			if (!user || user.softDeleted) {
 				throw new HttpException('Unauthorized. Invalid token.', HttpStatus.UNAUTHORIZED);
 			}
 
 			const isValidAuthToken = await this.crypt.validateUuidAndHash(authToken, user.authToken);
-			if (!user || !isValidAuthToken) {
+			if (!isValidAuthToken) {
 				throw new HttpException('Unauthorized. Invalid token.', HttpStatus.UNAUTHORIZED);
 			}
 

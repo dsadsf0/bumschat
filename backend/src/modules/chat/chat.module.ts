@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { ChatService } from './chat.service';
 
 @Module({
-	// controllers: [ChatController],
-	// providers: [ChatService, ConfigService, SnatchedService],
+	// imports: [StandardChatModule, RealTimeChatModule, OnlyOnlineChatModule],
+	providers: [ChatService, ConfigService, SnatchedService],
 })
 export class ChatModule {}

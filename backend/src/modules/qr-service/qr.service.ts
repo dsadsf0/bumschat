@@ -8,7 +8,7 @@ import handleError from 'src/core/utils/errorHandler';
 
 const QR_NAME_DELIMITER = '_';
 
-export const QR_FOLDER_NAME = 'QR-codies';
+export const QR_FOLDER_NAME = 'QR-codes';
 
 @Injectable()
 export class QrService {

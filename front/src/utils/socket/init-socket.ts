@@ -2,12 +2,13 @@ import { SERVER_SOCKET_URI } from '@/api';
 import { io, Socket } from 'socket.io-client';
 
 const socket: Socket = io(SERVER_SOCKET_URI, {
+	path: '/chat',
 	autoConnect: false,
 	reconnection: false,
 });
 
-export const initSocket = (encryptedToken: string): void => {
-	socket.auth = { token: encryptedToken };
+export const initSocket = (encryptedToken: string, publicKey: string): void => {
+	socket.auth = { token: encryptedToken, publicKey };
 	socket.connect();
 
 	socket.on('connection', () => {});

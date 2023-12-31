@@ -7,7 +7,7 @@ import * as cookieParser from 'cookie-parser';
 import Endpoints from 'src/core/consts/endpoint';
 
 async function bootstrap(): Promise<void> {
-	const PORT = process.env.PORT || 2001;
+	const PORT = process.env.PORT;
 
 	const app = await NestFactory.create(AppModule);
 

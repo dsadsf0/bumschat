@@ -1,21 +1,23 @@
 import NodeRsa from 'node-rsa';
 
+const KEY_BITS = 2048;
+
 class CryptService {
 	#cryptRsa: NodeRsa;
 
-	#encryptingRsa: NodeRsa;
+	#encryptRsa: NodeRsa;
 
 	public isKeysUpdating = false;
 
 	constructor() {
-		this.#cryptRsa = new NodeRsa({ b: 2048 });
-		this.#encryptingRsa = new NodeRsa();
+		this.#cryptRsa = new NodeRsa({ b: KEY_BITS });
+		this.#encryptRsa = new NodeRsa();
 	}
 
 	public async updateKeyPair(): Promise<void> {
 		this.isKeysUpdating = true;
 		await new Promise((resolve) => {
-			this.#cryptRsa.generateKeyPair(2048);
+			this.#cryptRsa.generateKeyPair(KEY_BITS);
 			resolve('ok');
 		});
 		this.isKeysUpdating = false;
@@ -26,8 +28,8 @@ class CryptService {
 	}
 
 	public encrypt(data: string, publicKey: string): string {
-		this.#encryptingRsa.importKey(publicKey, 'public');
-		return this.#encryptingRsa.encrypt(data, 'base64');
+		this.#encryptRsa.importKey(publicKey, 'public');
+		return this.#encryptRsa.encrypt(data, 'base64');
 	}
 
 	public decrypt(encryptedData: string): string {

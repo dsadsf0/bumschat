@@ -25,13 +25,15 @@ const App: React.FC = () => {
 		setIsAppInit(true);
 	};
 
-	const getAndTreatToken = async (username: string): Promise<string> => {
+	const getAndTreatToken = async (username: string): Promise<{ token: string; publicKey: string }> => {
 		const crypt = getCrypt();
 		const clientPublicKey = crypt.getPublicKey();
-		const res = await UserService.getToken(clientPublicKey);
-		console.log(res);
-		const token = crypt.decrypt(res.token);
-		return crypt.encrypt(`${token}_${username}`, res.publicKey);
+		const { token: userToken, publicKey: serverPublicKey } = await UserService.getToken(clientPublicKey);
+		const token = crypt.decrypt(userToken);
+		return {
+			token: crypt.encrypt(`${token}_${username}`, serverPublicKey),
+			publicKey: clientPublicKey,
+		};
 
 		// const token = '$2b$12$JfOZUDkk7ZdjYqVl6GJ7.uocWTJX5bHibXMU6xACT08r.2RBxk7ve';
 		// const publicKey = await UserService.getPublicKey();
@@ -39,10 +41,10 @@ const App: React.FC = () => {
 	};
 
 	const connectToSocket = async (username: string): Promise<void> => {
-		const token = await getAndTreatToken(username);
+		const { token, publicKey } = await getAndTreatToken(username);
 		console.log('connecting to socket');
 		console.log(token);
-		initSocket(token);
+		initSocket(token, publicKey);
 	};
 
 	useEffect(() => {
@@ -50,7 +52,6 @@ const App: React.FC = () => {
 	}, []);
 
 	useEffect(() => {
-		// connectToSocket('test');
 		if (user) {
 			connectToSocket(user.username);
 		}

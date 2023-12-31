@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsNotEmpty, IsString, Length } from 'class-validator';
 import { UserRolesValues } from 'src/core/consts/roles';
 
-@Schema()
+@Schema({ timestamps: { updatedAt: true, createdAt: false } })
 export class User {
 	@Prop({ type: String, required: true, unique: true })
 	@IsNotEmpty({ message: 'Need username' })
@@ -44,4 +44,4 @@ export class User {
 	role: UserRolesValues;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const UserSchema = SchemaFactory.createForClass(User).index({ username: 1 }).index({ authToken: 1 });

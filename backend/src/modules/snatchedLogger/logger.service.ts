@@ -1,6 +1,6 @@
 import { Injectable, ConsoleLogger } from '@nestjs/common';
-import * as dayjs from 'dayjs';
 import * as fs from 'fs-extra';
+import utcDayjs from 'src/core/utils/utcDayjs';
 
 const MILLISECONDS_IN_SECOND = 60000;
 
@@ -32,7 +32,7 @@ export class SnatchedService extends ConsoleLogger {
 					.split('/')
 					.find((str) => str.includes('.'))
 					.split('.');
-				const newFileName = `${fileName}_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}`;
+				const newFileName = `${fileName}_${utcDayjs().format('YYYY-MM-DD_HH-mm-ss')}`;
 				const newFilePath = filePath.replace(`${fileName}.${this.logFileExtension}`, `${newFileName}.${this.logFileExtension}`);
 				await fs.rename(filePath, newFilePath);
 				fs.ensureFileSync(filePath);
@@ -65,13 +65,13 @@ export class SnatchedService extends ConsoleLogger {
 	private highlightUsername(message: string, username: string, type: 'error' | 'warn' | 'info' | 'debug'): string {
 		switch (type) {
 			case 'debug':
-				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[22m\x1b[35m`);
+				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[35m`);
 			case 'info':
-				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[22m\x1b[32m`);
+				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[32m`);
 			case 'warn':
-				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[22m\x1b[33m`);
+				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[33m`);
 			case 'error':
-				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[22m\x1b[31m`);
+				return message.replace(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[31m`);
 		}
 	}
 
@@ -96,6 +96,14 @@ export class SnatchedService extends ConsoleLogger {
 			super.log(treatedMessage, context);
 
 			this.logToFile(textMessage, context, username);
+		} catch (error) {
+			super.error(error);
+		}
+	}
+
+	public log(message: string, ...optionalParams: [...any, string?]): void {
+		try {
+			super.log(`\x1b[1m\x1b[37m${message}\x1b[0m\x1b[32m`, ...optionalParams);
 		} catch (error) {
 			super.error(error);
 		}

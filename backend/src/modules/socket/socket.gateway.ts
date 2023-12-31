@@ -1,16 +1,17 @@
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { SnatchedService } from '../snatchedLogger/logger.service';
-import { Server, Socket } from 'socket.io';
 import { WsException } from '@nestjs/websockets/errors/ws-exception';
 import handleError from 'src/core/utils/errorHandler';
 import { config } from 'dotenv';
 import { SocketService } from './socket.service';
+import { SocketClient, SocketServer } from './types/socket.type';
 config({ path: `.${process.env.NODE_ENV}.env` });
 
-const SOCKET_PORT = Number(process.env.SOCKET_PORT) || 2002;
+const SOCKET_PORT = Number(process.env.SOCKET_PORT);
 
 @WebSocketGateway(SOCKET_PORT, {
-	namespace: '/chat',
+	namespace: 'chat',
+	path: '/chat',
 	cors: { origin: '*' },
 	cookie: true,
 })
@@ -21,7 +22,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 	) {}
 
 	@WebSocketServer()
-	private readonly server: Server;
+	private readonly server: SocketServer;
 
 	public afterInit(): void {
 		const loggerContext = `${SocketGateway.name}/${this.afterInit.name}`;
@@ -30,7 +31,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 		this.server.use(this.authMiddleware);
 	}
 
-	private authMiddleware = async (client: Socket, next: (err?: WsException | Error) => void): Promise<void> => {
+	private authMiddleware = async (client: SocketClient, next: (err?: WsException | Error) => void): Promise<void> => {
 		const loggerContext = `${SocketGateway.name}/authMiddleware`;
 
 		try {
@@ -43,7 +44,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 		}
 	};
 
-	public async handleConnection(client: Socket): Promise<void> {
+	public async handleConnection(client: SocketClient): Promise<void> {
 		const loggerContext = `${SocketGateway.name}/${this.handleConnection.name}`;
 
 		try {
@@ -60,7 +61,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 		}
 	}
 
-	public async handleDisconnect(client: Socket): Promise<void> {
+	public async handleDisconnect(client: SocketClient): Promise<void> {
 		const loggerContext = `${SocketGateway.name}/${this.handleDisconnect.name}`;
 
 		try {

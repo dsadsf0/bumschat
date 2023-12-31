@@ -6,7 +6,6 @@ import { UserCreateDto } from './dto/create-user.dto';
 import handleError from 'src/core/utils/errorHandler';
 import { UserRepository } from './user.repository';
 import { QrService } from 'src/modules/qr-service/qr.service';
-import * as dayjs from 'dayjs';
 import { UserCreateRdo } from './rdo/create-user.rdo';
 import { Response } from 'express';
 import { CryptoService } from 'src/modules/crypto/crypto.service';
@@ -20,6 +19,7 @@ import { AuthCheckedRequest } from './types/authCheckedTypes';
 import { UserRecoveryDto } from './dto/recovery-user.dto';
 import { UserCheckNameDto } from './dto/check-username.dto';
 import { UserRoles } from 'src/core/consts/roles';
+import utcDayjs from 'src/core/utils/utcDayjs';
 
 @Injectable()
 export class UserService {
@@ -37,7 +37,7 @@ export class UserService {
 	}
 
 	private setAuthCookie(username: string, response: Response): void {
-		const authToken = this.crypt.globalEncrypt(username);
+		const authToken = this.crypt.globalEncryptPrivate(username);
 		response.cookie('authToken', authToken, COOKIE_OPTIONS);
 	}
 
@@ -98,7 +98,7 @@ export class UserService {
 			const secret = this.speakeasy.generateSecret(username);
 			const encryptedSecretBase32 = this.crypt.globalEncrypt(secret.base32);
 
-			const authToken = this.crypt.globalEncrypt(username);
+			const authToken = this.crypt.globalEncryptPrivate(username);
 			const authTokenHash = await this.crypt.uuidAndHash(authToken, this.config.get('AUTH_TOKEN_SALT_ROUNDS'));
 
 			const recoverySecret = this.crypt.shortPassGen();
@@ -108,7 +108,7 @@ export class UserService {
 			const treatedQRData = await this.qrService.otpAuthUrlToQrData(secret.otpauth_url);
 			const fileName = await this.qrService.createQrImg(username, treatedQRData);
 
-			const createdAt = dayjs().format(DEFAULT_DATE_FORMAT);
+			const createdAt = utcDayjs().format(DEFAULT_DATE_FORMAT);
 
 			const newUser = await this.userRepository.createUser({
 				username,
@@ -141,7 +141,7 @@ export class UserService {
 		try {
 			const user = await this.userRepository.getUserByName(username);
 
-			return user ? true : false;
+			return !!user;
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

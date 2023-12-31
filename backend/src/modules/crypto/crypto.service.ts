@@ -13,14 +13,11 @@ export class CryptoService {
 
 	private cryptRsa: NodeRsa;
 
-	private encryptRsa: NodeRsa;
-
 	constructor(
 		private readonly config: ConfigService<AppConfigSchema>,
 		private readonly logger: SnatchedService
 	) {
 		this.cryptRsa = new NodeRsa({ b: 2048 });
-		this.encryptRsa = new NodeRsa();
 		this.globalRsa = new NodeRsa();
 		this.globalRsa.importKey(this.config.get('GLOBAL_PUBLIC_KEY').replace(/\\n/g, '\n'), 'public');
 		this.globalRsa.importKey(this.config.get('GLOBAL_PRIVATE_KEY').replace(/\\n/g, '\n'), 'private');
@@ -55,8 +52,8 @@ export class CryptoService {
 	public encrypt(data: string, publicKey: string): string {
 		const loggerContext = `${CryptoService.name}/${this.encrypt.name}`;
 		try {
-			this.encryptRsa.importKey(publicKey, 'public');
-			return this.encryptRsa.encrypt(data, 'base64');
+			const encryptRsa = new NodeRsa(publicKey, 'public');
+			return encryptRsa.encrypt(data, 'base64');
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -83,10 +80,30 @@ export class CryptoService {
 		}
 	}
 
+	public globalDecryptPrivate(encryptedData: string): string {
+		const loggerContext = `${CryptoService.name}/${this.globalDecryptPrivate.name}`;
+		try {
+			return this.globalRsa.decryptPublic(encryptedData, 'utf8');
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
 	public globalEncrypt(encryptedData: string): string {
 		const loggerContext = `${CryptoService.name}/${this.globalEncrypt.name}`;
 		try {
 			return this.globalRsa.encrypt(encryptedData, 'base64');
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public globalEncryptPrivate(encryptedData: string): string {
+		const loggerContext = `${CryptoService.name}/${this.globalEncryptPrivate.name}`;
+		try {
+			return this.globalRsa.encryptPrivate(encryptedData, 'base64');
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

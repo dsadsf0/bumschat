@@ -5,7 +5,7 @@ import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import { User } from './user.model';
 import { DEFAULT_DATE_FORMAT } from 'src/core/consts/dateFormat';
-import * as dayjs from 'dayjs';
+import utcDayjs from 'src/core/utils/utcDayjs';
 
 @Injectable()
 export class UserRepository {
@@ -62,7 +62,7 @@ export class UserRepository {
 				.findOneAndUpdate(
 					{ username },
 					{
-						$set: { softDeleted: dayjs().format(DEFAULT_DATE_FORMAT) },
+						$set: { softDeleted: utcDayjs().format(DEFAULT_DATE_FORMAT) },
 					},
 					{ new: true }
 				)

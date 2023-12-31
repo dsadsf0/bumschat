@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { CryptoService } from '../crypto/crypto.service';
 import { SnatchedService } from '../snatchedLogger/logger.service';
-import { Socket } from 'socket.io';
 import { WsException } from '@nestjs/websockets';
+import { SocketClient } from './types/socket.type';
 
 @Injectable()
 export class SocketService {
@@ -13,23 +13,27 @@ export class SocketService {
 		private readonly logger: SnatchedService
 	) {}
 
-	async authMiddleware(client: Socket): Promise<void> {
+	async authMiddleware(client: SocketClient): Promise<void> {
 		const encryptedToken = client.handshake.auth.token as string;
+		const publicKey = client.handshake.auth.publicKey as string;
 
-		console.log(encryptedToken);
+		if (!publicKey) {
+			throw new WsException(`Client with id: ${client.id} had not provide publicKey!`);
+		}
 
 		if (!encryptedToken) {
 			throw new WsException(`Client with id: ${client.id} does not have token!`);
 		}
 
+		let token = '';
+		let username = '';
+
 		try {
-			const token = this.crypt.decrypt(encryptedToken);
-			console.log(token);
+			[token, username] = this.crypt.decrypt(encryptedToken).split('_');
 		} catch (error) {
 			throw new WsException(`Client with id: ${client.id} have invalid token!`);
 		}
 
-		const [token, username] = this.crypt.decrypt(encryptedToken).split('_');
 		if (!token || !username) {
 			throw new WsException(`Client with id: ${client.id} have invalid token!`);
 		}
@@ -41,5 +45,6 @@ export class SocketService {
 		}
 
 		client.data.user = user;
+		client.data.publicKey = publicKey;
 	}
 }

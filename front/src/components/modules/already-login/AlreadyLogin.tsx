@@ -24,10 +24,10 @@ const AlreadyLogin: React.FC = () => {
 	}
 
 	return (
-		<h1>
-			<div>
-				You already signed up as <i>{user?.username}</i>.
-			</div>
+		<div className={classnames(cl['already-login'])}>
+			<h1 className={classnames(cl['already-login__title'])}>
+				You already signed up as <i>{user?.username || 'dSaDsf0'}</i>.
+			</h1>
 			<div className={classnames(cl['already-login__actions'])}>
 				<Link className={classnames(cl['already-login__btn'])} to={MainRoutes.Home} replace={true}>
 					Go to chatting!
@@ -37,7 +37,7 @@ const AlreadyLogin: React.FC = () => {
 					Log out
 				</div>
 			</div>
-		</h1>
+		</div>
 	);
 };
 

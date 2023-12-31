@@ -4,7 +4,6 @@ import { useAppSelector } from '@/hooks/useStore';
 import { getUser } from '@/store/user/UserSelector';
 import { useState } from 'react';
 import { MainRoutes } from '@/routes/mainRoutes';
-import { UserService } from '@/api/services/UserService';
 import { useAppDispatch } from '../../hooks/useStore';
 import { getSocket } from '@/utils/socket/init-socket';
 import { getCrypt } from '@/utils/crypt/init-crypt';
@@ -31,11 +30,11 @@ const Home: React.FC = () => {
 					<p>{msg}</p>
 				))}
 			</div>
-			<div>
-				{/* <input type="text" value={message} onChange={(e): void => setMessage(e.target.value)} placeholder="Enter your message" />
+			{/* <div>
+				<input type="text" value={message} onChange={(e): void => setMessage(e.target.value)} placeholder="Enter your message" />
 				<button onClick={sendMessage}>Send</button>
-				<button onClick={() => dispatch(UserService.logout())}>Logout</button> */}
-			</div>
+				<button onClick={() => dispatch(UserService.logout())}>Logout</button>
+			</div> */}
 		</div>
 	);
 };
