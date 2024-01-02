@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import utcDayjs from 'src/core/utils/utcDayjs';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 
 @Injectable()
 export class AppService {

@@ -4,7 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppConfigSchema } from './app.schema';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import { UserModule } from 'src/modules/user/user.module';
 import * as Joi from 'joi';
 import { QrService } from 'src/modules/qr-service/qr.service';

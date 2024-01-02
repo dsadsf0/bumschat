@@ -8,9 +8,9 @@ import { getUser, getUserStateLoading } from '@/store/user/UserSelector';
 import { setUserError } from '@/store/user/UserSlice';
 import { getUserStateError } from '@/store/user/UserSelector';
 import ValidationService from '@/utils/validation';
-import { getCrypt } from '@/utils/crypt/init-crypt';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 import JustSigned from '@/components/modules/just-signed/JustSigned';
+import cryptService from '@/utils/crypt/crypt-service';
 
 const Signup: React.FC = () => {
 	const [username, setUsername] = useState<string>('');
@@ -18,7 +18,6 @@ const Signup: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const [isJustSigned, setIsJustSigned] = useState(false);
 	const user = useAppSelector(getUser);
-	const cryptService = getCrypt();
 	const { signup: isSigningUp } = useAppSelector(getUserStateLoading);
 	const { signup: signupError } = useAppSelector(getUserStateError);
 

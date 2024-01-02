@@ -27,9 +27,13 @@ class CryptService {
 		return this.#cryptRsa.exportKey('public');
 	}
 
-	public encrypt(data: string, publicKey: string): string {
+	public setEncryptKey(publicKey: string): void {
 		this.#encryptRsa.importKey(publicKey, 'public');
-		return this.#encryptRsa.encrypt(data, 'base64');
+	}
+
+	public encryptByKey(data: string, publicKey: string): string {
+		const keyRsa = new NodeRsa().importKey(publicKey, 'public');
+		return keyRsa.encrypt(data, 'base64');
 	}
 
 	public decrypt(encryptedData: string): string {
@@ -37,4 +41,4 @@ class CryptService {
 	}
 }
 
-export default CryptService;
+export default new CryptService();

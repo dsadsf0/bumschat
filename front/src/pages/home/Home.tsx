@@ -5,16 +5,14 @@ import { getUser } from '@/store/user/UserSelector';
 import { useState } from 'react';
 import { MainRoutes } from '@/routes/mainRoutes';
 import { useAppDispatch } from '../../hooks/useStore';
-import { getSocket } from '@/utils/socket/init-socket';
-import { getCrypt } from '@/utils/crypt/init-crypt';
+import { socket } from '@/utils/socket/init-socket';
+import cryptService from '@/utils/crypt/crypt-service';
 
 const Home: React.FC = () => {
 	const user = useAppSelector(getUser);
 	const [message, setMessage] = useState<string>('');
 	const [msgs, setMsgs] = useState<string[]>([]);
 	const dispatch = useAppDispatch();
-	const socket = getSocket();
-	const crypt = getCrypt();
 
 	if (!user) {
 		return <Navigate to={MainRoutes.Welcome} />;

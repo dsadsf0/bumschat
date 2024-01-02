@@ -1,5 +1,5 @@
-import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { SnatchedService } from '../snatchedLogger/logger.service';
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { SnatchedService } from '../snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets/errors/ws-exception';
 import handleError from 'src/core/utils/errorHandler';
 import { config } from 'dotenv';
@@ -54,7 +54,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 				throw new WsException(`Client with id: ${client.id} disconnected! Unauthorized.`);
 			}
 
-			this.logger.info(`New connection ${user.username} with socket id: ${client.id}!`, loggerContext, user.username);
+			this.logger.info(`New connection ${user.username} with socket id: ${client.id}!`, loggerContext, user.username, user.id);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			client.disconnect();
@@ -68,8 +68,19 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 			const { user } = client.data;
 
 			if (user) {
-				this.logger.info(`Disconnected ${user.username} with socket id: ${client.id}!`, loggerContext, user.username);
+				this.logger.info(`Disconnected ${user.username} with socket id: ${client.id}!`, loggerContext, user.username, user.id);
 			}
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	@SubscribeMessage('chat-message')
+	public async message(@MessageBody() message: any, @ConnectedSocket() client: SocketClient): Promise<void> {
+		const loggerContext = `${SocketGateway.name}/${this.handleDisconnect.name}`;
+
+		try {
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

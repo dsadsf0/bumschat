@@ -3,13 +3,13 @@ import InputPrimary from '@/components/UI/inputs/primary-input';
 import { useState } from 'react';
 import cl from './recovery.module.scss';
 import ValidationService from '@/utils/validation';
-import { getCrypt } from '@/utils/crypt/init-crypt';
 import { UserService } from '@/api/services/UserService';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { getUser, getUserStateError } from '@/store/user/UserSelector';
 import { setUserError } from '@/store/user/UserSlice';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 import JustSigned from '@/components/modules/just-signed/JustSigned';
+import cryptService from '@/utils/crypt/crypt-service';
 
 const Recovery: React.FC = () => {
 	const [username, setUsername] = useState('');
@@ -17,7 +17,6 @@ const Recovery: React.FC = () => {
 	const [isJustSigned, setIsJustSigned] = useState(false);
 	const user = useAppSelector(getUser);
 	const { recovery: recoveryError } = useAppSelector(getUserStateError);
-	const cryptService = getCrypt();
 	const dispatch = useAppDispatch();
 
 	const handleSetUsername = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -31,9 +30,7 @@ const Recovery: React.FC = () => {
 	const handleRecovery = async (e: React.KeyboardEvent<HTMLDivElement>): Promise<void> => {
 		if (e.code === 'Enter') {
 			if (ValidationService.validateUsername(username)) {
-				const serverPublicKey = await UserService.getPublicKey();
-
-				const encryptedRecoverySecret = cryptService.encrypt(recoveryPass, serverPublicKey);
+				const encryptedRecoverySecret = cryptService.encrypt(recoveryPass);
 
 				const res = await dispatch(UserService.recovery({ username, recoverySecret: encryptedRecoverySecret }));
 				if (res.payload && typeof res.payload !== 'string' && !('statusCode' in res.payload)) {

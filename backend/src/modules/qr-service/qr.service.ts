@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as uuid from 'uuid';
 import * as qrcode from 'qrcode';
 import handleError from 'src/core/utils/errorHandler';
-
-const QR_NAME_DELIMITER = '_';
+import utcDayjs from 'src/core/utils/utcDayjs';
 
 export const QR_FOLDER_NAME = 'QR-codes';
 
@@ -47,18 +46,28 @@ export class QrService {
 		}
 	}
 
-	public async createQrImg(username: string, treatedQRData: string): Promise<string> {
+	public getFileName(): string {
+		return `${utcDayjs().unix}${uuid.v4()}.png`;
+	}
+
+	public getLogUsername(username?: string): string {
+		return username ? ` to ${username}` : '';
+	}
+
+	public async createQrImg(treatedQRData: string, username?: string, userId?: string): Promise<string> {
 		const loggerContext = `${QrService.name}/${this.createQrImg.name}`;
 
 		try {
-			const fileName = `${username}${QR_NAME_DELIMITER}${uuid.v4()}.png`;
+			const fileName = this.getFileName();
 
 			const filePath = path.resolve(QR_FOLDER_NAME, fileName);
 
 			await fs.ensureFile(filePath);
 			await fs.writeFile(filePath, treatedQRData, { encoding: 'base64' });
 
-			this.logger.info(`Qr image to ${username} has been created.`, loggerContext, username);
+			const logUsername = this.getLogUsername(username);
+
+			this.logger.info(`Qr image ${fileName}${logUsername} has been created.`, loggerContext, username, userId);
 
 			return fileName;
 		} catch (error) {
@@ -67,16 +76,17 @@ export class QrService {
 		}
 	}
 
-	public async deleteQrImg(fileName: string): Promise<void> {
+	public async deleteQrImg(fileName: string, username?: string, userId?: string): Promise<void> {
 		const loggerContext = `${QrService.name}/${this.deleteQrImg.name}`;
 
 		try {
 			const filePath = path.resolve(QR_FOLDER_NAME, fileName);
-			const [username] = fileName.split(QR_NAME_DELIMITER);
 
 			await fs.unlink(filePath);
 
-			this.logger.info(`Qr image to ${username} has been deleted.`, loggerContext, username);
+			const logUsername = this.getLogUsername(username);
+
+			this.logger.info(`Qr image ${fileName}${logUsername} has been deleted.`, loggerContext, username, userId);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

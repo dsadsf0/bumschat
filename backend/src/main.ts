@@ -2,7 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from 'src/app/app.module';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import * as cookieParser from 'cookie-parser';
 import Endpoints from 'src/core/consts/endpoint';
 

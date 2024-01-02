@@ -10,15 +10,14 @@ import { getUserStateError } from '@/store/user/UserSelector';
 import { getUserStateLoading } from '@/store/user/UserSelector';
 import { setUserError } from '@/store/user/UserSlice';
 import ValidationService from '@/utils/validation';
-import { getCrypt } from '@/utils/crypt/init-crypt';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
+import cryptService from '@/utils/crypt/crypt-service';
 
 const Login: React.FC = memo(() => {
 	const [username, setUsername] = useState<string>('');
 	const [authCode, setAuthCode] = useState<string>('');
 	const [isVerified, setIsVerified] = useState<boolean>(false);
 	const user = useAppSelector(getUser);
-	const cryptService = getCrypt();
 	const { login: loginError, loginCheck: loginCheckError } = useAppSelector(getUserStateError);
 	const { login: isLoginning, loginCheck: isCheckingLogin } = useAppSelector(getUserStateLoading);
 	const dispatch = useAppDispatch();
@@ -49,8 +48,7 @@ const Login: React.FC = memo(() => {
 
 	const login = async (): Promise<void> => {
 		if (ValidationService.validate2FA(authCode)) {
-			const publicKey = await UserService.getPublicKey();
-			const encryptedCode = cryptService.encrypt(authCode, publicKey);
+			const encryptedCode = cryptService.encrypt(authCode);
 			const res = await dispatch(UserService.login({ username, verificationCode: encryptedCode }));
 			if (typeof res.payload === 'string') {
 				setAuthCode('');

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SnatchedService } from '../snatchedLogger/logger.service';
+import { SnatchedService } from '../snatched-logger/logger.service';
 import { SocketGateway } from './socket.gateway';
 import { UserModule } from 'src/modules/user/user.module';
 import { CryptoModule } from '../crypto/crypto.module';

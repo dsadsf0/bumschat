@@ -109,8 +109,7 @@ export const UserService = {
 			return res.data;
 		} catch (error: unknown) {
 			if (error instanceof AxiosError) {
-				console.log(error.message);
-				throw new Error('Error getting qr img');
+				throw new Error(error?.response?.data?.message || error.message);
 			}
 			throw new Error('Unexpected get qr error');
 		}
@@ -122,8 +121,7 @@ export const UserService = {
 			return res.data;
 		} catch (error: unknown) {
 			if (error instanceof AxiosError) {
-				console.log(error.message);
-				throw new Error('Error getting qr img');
+				throw new Error(error?.response?.data?.message || error.message);
 			}
 			throw new Error('Unexpected get public key error');
 		}
@@ -135,8 +133,7 @@ export const UserService = {
 			return res.data;
 		} catch (error: unknown) {
 			if (error instanceof AxiosError) {
-				console.log(error.message);
-				throw new Error('Error getting token img');
+				throw new Error(error?.response?.data?.message || error.message);
 			}
 			throw new Error('Unexpected get token error');
 		}

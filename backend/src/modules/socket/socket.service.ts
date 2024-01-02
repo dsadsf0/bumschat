@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { CryptoService } from '../crypto/crypto.service';
-import { SnatchedService } from '../snatchedLogger/logger.service';
+import { SnatchedService } from '../snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets';
 import { SocketClient } from './types/socket.type';
 

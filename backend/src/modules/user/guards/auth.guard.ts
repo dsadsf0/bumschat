@@ -1,5 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import { AuthCheckedRequest } from '../types/authCheckedTypes';
 import handleError from 'src/core/utils/errorHandler';
 import { UserRepository } from '../user.repository';
@@ -45,6 +45,7 @@ export class AuthGuard implements CanActivate {
 
 			request.user = {
 				username: user.username,
+				id: user._id.toString(),
 			};
 
 			return true;

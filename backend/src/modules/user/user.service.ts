@@ -1,7 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigSchema } from 'src/app/app.schema';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import { UserCreateDto } from './dto/create-user.dto';
 import handleError from 'src/core/utils/errorHandler';
 import { UserRepository } from './user.repository';
@@ -9,17 +9,14 @@ import { QrService } from 'src/modules/qr-service/qr.service';
 import { UserCreateRdo } from './rdo/create-user.rdo';
 import { Response } from 'express';
 import { CryptoService } from 'src/modules/crypto/crypto.service';
-import { DEFAULT_DATE_FORMAT } from 'src/core/consts/dateFormat';
 import { COOKIE_OPTIONS } from 'src/core/consts/cookies';
 import { SpeakeasyService } from 'src/modules/speakeasy/speakeasy.service';
 import { UserGetRdo } from './rdo/get-user.rdo';
-import { User } from './user.model';
+import { UserDocument } from './user.model';
 import { UserLoginDto } from './dto/login-user.dto';
 import { AuthCheckedRequest } from './types/authCheckedTypes';
 import { UserRecoveryDto } from './dto/recovery-user.dto';
 import { UserCheckNameDto } from './dto/check-username.dto';
-import { UserRoles } from 'src/core/consts/roles';
-import utcDayjs from 'src/core/utils/utcDayjs';
 
 @Injectable()
 export class UserService {
@@ -32,8 +29,8 @@ export class UserService {
 		private readonly logger: SnatchedService
 	) {}
 
-	private adapterUserGetRdo(user: User): UserGetRdo {
-		return { username: user.username };
+	private adapterUserGetRdo(user: UserDocument): UserGetRdo {
+		return { username: user.username, id: user._id.toString() };
 	}
 
 	private setAuthCookie(username: string, response: Response): void {
@@ -106,22 +103,17 @@ export class UserService {
 			const recoverySecretHash = await this.crypt.uuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
 
 			const treatedQRData = await this.qrService.otpAuthUrlToQrData(secret.otpauth_url);
-			const fileName = await this.qrService.createQrImg(username, treatedQRData);
-
-			const createdAt = utcDayjs().format(DEFAULT_DATE_FORMAT);
+			const fileName = await this.qrService.createQrImg(treatedQRData, username);
 
 			const newUser = await this.userRepository.createUser({
 				username,
 				secretBase32: encryptedSecretBase32,
 				recoverySecret: recoverySecretHash,
-				createdAt,
 				authToken: authTokenHash,
 				qrImg: fileName,
-				role: UserRoles.User,
-				softDeleted: null,
 			});
 
-			this.logger.info(`Registered new user ${username}!`, loggerContext, username);
+			this.logger.info(`Registered new user ${username}!`, loggerContext, username, newUser._id.toString());
 
 			response.cookie('authToken', authToken, COOKIE_OPTIONS);
 
@@ -166,7 +158,7 @@ export class UserService {
 				throw new HttpException('Does not correct 2FA code', HttpStatus.UNAUTHORIZED);
 			}
 
-			this.logger.info(`${username} logged in!`, loggerContext, username);
+			this.logger.info(`${username} logged in!`, loggerContext, username, user._id.toString());
 
 			this.setAuthCookie(username, response);
 
@@ -182,7 +174,7 @@ export class UserService {
 
 		try {
 			const user = request.user;
-			this.logger.info(`Logged out ${user.username}!`, loggerContext, user.username);
+			this.logger.info(`Logged out ${user.username}!`, loggerContext, user.username, user.id);
 
 			response.clearCookie('authToken', COOKIE_OPTIONS);
 		} catch (error) {
@@ -198,7 +190,7 @@ export class UserService {
 			const user = await this.userRepository.softDeleteUser(request.user.username);
 
 			await this.logout(request, response);
-			this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, user.username);
+			this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, user.username, user._id.toString());
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -227,9 +219,9 @@ export class UserService {
 			this.setAuthCookie(username, response);
 
 			if (user.softDeleted) {
-				this.logger.info(`RECOVERED ${username} from soft delete!`, loggerContext, username);
+				this.logger.info(`RECOVERED ${username} from soft delete!`, loggerContext, username, user._id.toString());
 			} else {
-				this.logger.info(`Recovered ${username} access to account!`, loggerContext, username);
+				this.logger.info(`Recovered ${username} access to account!`, loggerContext, username, user._id.toString());
 			}
 
 			return this.adapterUserGetRdo(recoveredUser);
@@ -248,8 +240,8 @@ export class UserService {
 				throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
 			}
 			const user = await this.userRepository.deleteUser(username);
-			await this.qrService.deleteQrImg(user.qrImg);
-			this.logger.info(`COMPLETELY DELETED user ${user.username} by ${admin.username}!`, loggerContext, user.username);
+			await this.qrService.deleteQrImg(user.qrImg, user.username, user._id.toString());
+			this.logger.info(`COMPLETELY DELETED user ${user.username} by ${admin.username}!`, loggerContext, user.username, user._id.toString());
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

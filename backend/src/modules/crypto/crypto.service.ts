@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigSchema } from 'src/app/app.schema';
-import { SnatchedService } from 'src/modules/snatchedLogger/logger.service';
+import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import * as uuid from 'uuid';
 import * as bcrypt from 'bcrypt';
