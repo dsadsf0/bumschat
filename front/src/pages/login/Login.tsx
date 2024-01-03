@@ -12,6 +12,7 @@ import { setUserError } from '@/store/user/UserSlice';
 import ValidationService from '@/utils/validation';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 import cryptService from '@/utils/crypt/crypt-service';
+import cl from './login.module.scss';
 
 const Login: React.FC = memo(() => {
 	const [username, setUsername] = useState<string>('');
@@ -77,7 +78,7 @@ const Login: React.FC = memo(() => {
 
 	if (isVerified) {
 		return (
-			<div onKeyDown={loginOnKey}>
+			<div onKeyDown={loginOnKey} className={cl.login}>
 				<InputPrimary
 					style="big"
 					type="text"
@@ -93,7 +94,7 @@ const Login: React.FC = memo(() => {
 	}
 
 	return (
-		<div onKeyDown={loginCheckOnKey}>
+		<div onKeyDown={loginCheckOnKey} className={cl.login}>
 			<InputPrimary
 				style="big"
 				type="text"

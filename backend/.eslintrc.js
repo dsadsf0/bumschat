@@ -17,6 +17,8 @@ module.exports = {
         '@typescript-eslint/interface-name-prefix': 'off',
         '@typescript-eslint/explicit-function-return-type': 'error',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
+		'no-unused-vars': 'off',
+		"@typescript-eslint/no-unused-vars": 'error',
         '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-empty-function': 'off',
         indent: ['error', 'tab', { SwitchCase: 1, ignoredNodes: ['PropertyDefinition'] }],

@@ -31,6 +31,10 @@ class CryptService {
 		this.#encryptRsa.importKey(publicKey, 'public');
 	}
 
+	public encrypt(data: string): string {
+		return this.#encryptRsa.encrypt(data, 'base64');
+	}
+
 	public encryptByKey(data: string, publicKey: string): string {
 		const keyRsa = new NodeRsa().importKey(publicKey, 'public');
 		return keyRsa.encrypt(data, 'base64');

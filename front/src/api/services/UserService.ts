@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { User } from '@/types/User';
+import { User } from '@/types/user';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RejectOptions, RequestTokenResponse, SignupResponse, UsernameCheckResponse } from '@/types/api-services/user/responses';
 import { LoginRequest, RecoveryRequest, SignupRequest, UsernameCheckRequest } from '@/types/api-services/user/requests';

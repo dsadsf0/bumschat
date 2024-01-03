@@ -5,7 +5,7 @@ import { ChatType } from './types/chat.type';
 import { AbstractChatService } from './abstractions/chat-service';
 import handleError from 'src/core/utils/errorHandler';
 
-type MessageContent = {
+type MessageBody = {
 	text?: string;
 	photo?: string;
 	video?: string;
@@ -24,16 +24,16 @@ type MessageChat = {
 };
 
 type MessagePayload = {
-	content: MessageContent;
-	from: MessageFrom;
+	message: MessageBody;
 	chat: MessageChat;
 };
 
-type MessageRdo = {
-	id: string;
-	content: MessageContent;
+type MessageContext = MessagePayload & {
 	from: MessageFrom;
-	chat: MessageChat;
+};
+
+type MessageRdo = MessageContext & {
+	id: string;
 	timestamp: number;
 	edited?: number;
 };
@@ -53,11 +53,11 @@ export class ChatService {
 		};
 	}
 
-	public async treatMessage(messagePayload: MessagePayload): Promise<MessageRdo> {
+	public async treatMessage(ctx: MessageContext): Promise<MessageRdo> {
 		const loggerContext = `${ChatService.name}/${this.treatMessage.name}`;
 
 		try {
-			return await this.chatService[messagePayload.chat.type].treatMessage(messagePayload);
+			return await this.chatService[ctx.chat.type].treatMessage(ctx);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

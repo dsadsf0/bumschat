@@ -13,9 +13,12 @@
 	}
 
 	&_big {
+		display: block;
 		padding: 18px 20px;
 		font-size: 20px;
+		width: 100%;
 		min-width: 300px;
+		max-width: 500px;
 		border-width: 2px;
 		border-radius: 30px;
 	}

@@ -11,6 +11,7 @@ import ValidationService from '@/utils/validation';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 import JustSigned from '@/components/modules/just-signed/JustSigned';
 import cryptService from '@/utils/crypt/crypt-service';
+import cl from './signup.module.scss';
 
 const Signup: React.FC = () => {
 	const [username, setUsername] = useState<string>('');
@@ -59,7 +60,7 @@ const Signup: React.FC = () => {
 	}
 
 	return (
-		<div onKeyDown={signupOnKey}>
+		<div onKeyDown={signupOnKey} className={cl.signup}>
 			<InputPrimary
 				style="big"
 				type="text"

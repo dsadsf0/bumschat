@@ -1,5 +1,5 @@
 import { RootState } from '..';
-import { User } from './../../types/User';
+import { User } from '../../types/user';
 import { UserError, UserLoading, UserState } from './UserSlice';
 
 export const getUserState = (state: RootState): UserState => state.user;

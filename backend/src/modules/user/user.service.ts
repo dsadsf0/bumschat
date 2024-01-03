@@ -133,7 +133,11 @@ export class UserService {
 		try {
 			const user = await this.userRepository.getUserByName(username);
 
-			return !!user;
+			if (!user) {
+				throw new HttpException('User with this username does not exist', HttpStatus.BAD_REQUEST);
+			}
+
+			return true;
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
