@@ -4,7 +4,6 @@ import { useAppSelector } from '@/hooks/useStore';
 import { getUser } from '@/store/user/UserSelector';
 import { useState } from 'react';
 import { MainRoutes } from '@/routes/mainRoutes';
-import { useAppDispatch } from '../../hooks/useStore';
 import { Message, socket } from '@/utils/socket/init-socket';
 import cryptService from '@/utils/crypt/crypt-service';
 
@@ -12,7 +11,6 @@ const Home: React.FC = () => {
 	const user = useAppSelector(getUser);
 	const [message, setMessage] = useState<string>('');
 	const [msgs, setMsgs] = useState<Message[]>([]);
-	const dispatch = useAppDispatch();
 
 	useEffect(() => {
 		socket.on('chat-message', (ctx) => {

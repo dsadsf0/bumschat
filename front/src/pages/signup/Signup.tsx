@@ -7,7 +7,7 @@ import Loader from '@/components/UI/loader/index';
 import { getUser, getUserStateLoading } from '@/store/user/UserSelector';
 import { setUserError } from '@/store/user/UserSlice';
 import { getUserStateError } from '@/store/user/UserSelector';
-import ValidationService from '@/utils/validation';
+import ValidationService from '@/utils/validation/validation';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 import JustSigned from '@/components/modules/just-signed/JustSigned';
 import cryptService from '@/utils/crypt/crypt-service';

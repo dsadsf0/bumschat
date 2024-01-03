@@ -4,6 +4,8 @@ import utcDayjs from 'src/core/utils/utcDayjs';
 
 const MILLISECONDS_IN_SECOND = 60000;
 
+const UNAVAILABLE_SYMBLOS_REGEX = /['"\/|\\:*<>?]/g;
+
 @Injectable()
 export class SnatchedService extends ConsoleLogger {
 	private readonly logsDirectory = 'logs';
@@ -51,10 +53,7 @@ export class SnatchedService extends ConsoleLogger {
 
 	private async logToFile(message: string, context?: string, userId?: string): Promise<void> {
 		try {
-			// TODO: возможно еще что-то изменить в регуляркке для username,
-			// обновить на фронте регулярку на финальную версию
-			// TODO: вынести все ограничения для username в один объект
-			const treatedUserid = userId?.replaceAll(/['"\/|\\:*<>?]/g, '');
+			const treatedUserid = userId?.replaceAll(UNAVAILABLE_SYMBLOS_REGEX, '');
 			const logFilePath = this.getLogFilePath(treatedUserid);
 
 			await this.checkLogFileSize(logFilePath);

@@ -9,7 +9,7 @@ import Loader from '@/components/UI/loader';
 import { getUserStateError } from '@/store/user/UserSelector';
 import { getUserStateLoading } from '@/store/user/UserSelector';
 import { setUserError } from '@/store/user/UserSlice';
-import ValidationService from '@/utils/validation';
+import ValidationService from '@/utils/validation/validation';
 import AlreadyLogin from '@/components/modules/already-login/AlreadyLogin';
 import cryptService from '@/utils/crypt/crypt-service';
 import cl from './login.module.scss';

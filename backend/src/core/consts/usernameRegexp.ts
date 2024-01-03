@@ -1,3 +1,7 @@
-const USERNAME_REGEXP = /^[\p{L}\p{M}A-Za-z ?!#+=$%^&*()<>\\\/\d_-]+$/g;
+const UsernameRestrictions = {
+	UsernameRegex: /^[\p{N}\p{S}\p{L}a-zа-яё ?!#+=$%^&*()\\<>\/\d_-]+$/giu,
+	MinLength: 3,
+	MaxLength: 30,
+} as const;
 
-export default USERNAME_REGEXP;
+export default UsernameRestrictions;

@@ -2,7 +2,7 @@ import React from 'react';
 import InputPrimary from '@/components/UI/inputs/primary-input';
 import { useState } from 'react';
 import cl from './recovery.module.scss';
-import ValidationService from '@/utils/validation';
+import ValidationService from '@/utils/validation/validation';
 import { UserService } from '@/api/services/UserService';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { getUser, getUserStateError } from '@/store/user/UserSelector';
