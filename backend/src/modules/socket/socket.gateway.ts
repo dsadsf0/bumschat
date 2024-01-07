@@ -1,10 +1,21 @@
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ChatService } from './../chat/chat.service';
+import {
+	ConnectedSocket,
+	MessageBody,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
+	OnGatewayInit,
+	SubscribeMessage,
+	WebSocketGateway,
+	WebSocketServer,
+} from '@nestjs/websockets';
 import { SnatchedService } from '../snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets/errors/ws-exception';
 import handleError from 'src/core/utils/errorHandler';
 import { config } from 'dotenv';
 import { SocketService } from './socket.service';
 import { SocketClient, SocketServer } from './types/socket.type';
+import { MessagePayload } from '../chat/types/message.type';
 config({ path: `.${process.env.NODE_ENV}.env` });
 
 const SOCKET_PORT = Number(process.env.SOCKET_PORT);
@@ -55,6 +66,15 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 			}
 
 			this.logger.info(`New connection ${user.username} with socket id: ${client.id}!`, loggerContext, user.username, user.id);
+
+			const userChats = ['mock-id'];
+			// const userChats = await this.socketService.getUserChats(user.id);
+
+			if (!userChats.length) {
+				return;
+			}
+
+			client.join(userChats);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			client.disconnect();
@@ -77,10 +97,19 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 	}
 
 	@SubscribeMessage('chat-message')
-	public async message(@MessageBody() message: any, @ConnectedSocket() client: SocketClient): Promise<void> {
+	public async message(@MessageBody() ctx: MessagePayload, @ConnectedSocket() client: SocketClient): Promise<void> {
 		const loggerContext = `${SocketGateway.name}/${this.handleDisconnect.name}`;
 
 		try {
+			const treatedMessage = await this.socketService.treatMessage({
+				...ctx,
+				from: {
+					id: client.data.user.id,
+					username: client.data.user.username,
+				},
+			});
+
+			// теперь надо будет для каждого пользователя чата персонально зашифровать текст сообщения
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

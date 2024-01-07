@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import { User, UserDocument } from './user.model';
@@ -95,6 +95,18 @@ export class UserRepository {
 			const user = await this.userModel.findOneAndDelete({ username }).lean();
 
 			return user;
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async getUserChats(userId: string): Promise<Types.ObjectId[]> {
+		const loggerContext = `${UserRepository.name}/${this.getUserChats.name}`;
+		try {
+			const user = await this.userModel.findById(userId).lean();
+
+			return user.chats;
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

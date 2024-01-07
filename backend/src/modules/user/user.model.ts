@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 import { UserRolesValues } from 'src/core/consts/roles';
 import { DocumentModel } from 'src/core/types/document-model.type';
 import utcDayjs from 'src/core/utils/utcDayjs';
@@ -33,6 +34,9 @@ export class User {
 
 	@Prop({ type: String, default: 'user' })
 	role?: UserRolesValues;
+
+	@Prop({ type: [Types.ObjectId], default: [] }) // добавить ссылку на модель чатов
+	chats: Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User).index({ username: 1 }).index({ authToken: 1 });

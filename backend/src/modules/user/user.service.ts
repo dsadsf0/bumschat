@@ -111,6 +111,7 @@ export class UserService {
 				recoverySecret: recoverySecretHash,
 				authToken: authTokenHash,
 				qrImg: fileName,
+				chats: [],
 			});
 
 			this.logger.info(`Registered new user ${username}!`, loggerContext, username, newUser._id.toString());
@@ -267,6 +268,18 @@ export class UserService {
 			const encryptedToken = this.crypt.encrypt(authToken, publicKey);
 
 			return encryptedToken;
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async getUserChats(userId: string): Promise<string[]> {
+		const loggerContext = `${UserService.name}/${this.getUserChats.name}`;
+		try {
+			const groupIds = await this.userRepository.getUserChats(userId);
+
+			return groupIds.map((id) => id.toString());
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

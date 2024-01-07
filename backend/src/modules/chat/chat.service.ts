@@ -4,39 +4,7 @@ import { RealTimeChatService } from './modules/real-time-chat/real-time-chat.ser
 import { ChatType } from './types/chat.type';
 import { AbstractChatService } from './abstractions/chat-service';
 import handleError from 'src/core/utils/errorHandler';
-
-type MessageBody = {
-	text?: string;
-	photo?: string;
-	video?: string;
-	audio?: string;
-};
-
-type MessageFrom = {
-	id: string;
-	username: string;
-};
-
-type MessageChat = {
-	id: string;
-	name: string;
-	type: ChatType;
-};
-
-type MessagePayload = {
-	message: MessageBody;
-	chat: MessageChat;
-};
-
-type MessageContext = MessagePayload & {
-	from: MessageFrom;
-};
-
-type MessageRdo = MessageContext & {
-	id: string;
-	timestamp: number;
-	edited?: number;
-};
+import { MessageContext, MessageRdo } from './types/message.type';
 
 @Injectable()
 export class ChatService {
