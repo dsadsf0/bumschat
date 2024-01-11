@@ -28,13 +28,13 @@ export class UserRepository {
 		}
 	}
 
-	public async getUserByAuthToken(authToken: string): Promise<UserDocument | null> {
-		const loggerContext = `${UserRepository.name}/${this.getUserByAuthToken.name}`;
+	public async getUsersByAuthToken(authToken: string): Promise<UserDocument[]> {
+		const loggerContext = `${UserRepository.name}/${this.getUsersByAuthToken.name}`;
 
 		try {
-			const user = await this.userModel.findOne({ authToken }).lean();
+			const users = await this.userModel.find({ authToken }).lean();
 
-			return user || null;
+			return users;
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -88,8 +88,8 @@ export class UserRepository {
 		}
 	}
 
-	public async deleteUser(username: string): Promise<UserDocument> {
-		const loggerContext = `${UserRepository.name}/${this.deleteUser.name}`;
+	public async deleteUserByName(username: string): Promise<UserDocument> {
+		const loggerContext = `${UserRepository.name}/${this.deleteUserByName.name}`;
 
 		try {
 			const user = await this.userModel.findOneAndDelete({ username }).lean();
@@ -101,10 +101,43 @@ export class UserRepository {
 		}
 	}
 
+	public async deleteUsersByIds(userIds: string[]): Promise<void> {
+		const loggerContext = `${UserRepository.name}/${this.deleteUsersByIds.name}`;
+
+		try {
+			await this.userModel.deleteMany({ _id: { $in: userIds } });
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async deleteAllSoftDeletedUsers(): Promise<void> {
+		const loggerContext = `${UserRepository.name}/${this.deleteAllSoftDeletedUsers.name}`;
+
+		try {
+			await this.userModel.deleteMany({ softDeleted: { $ne: null } });
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async deleteSoftDeletedUsersOlderThan(date: string): Promise<void> {
+		const loggerContext = `${UserRepository.name}/${this.deleteSoftDeletedUsersOlderThan.name}`;
+
+		try {
+			await this.userModel.deleteMany({ softDeleted: { $lte: date } });
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
 	public async getUserChats(userId: string): Promise<Types.ObjectId[]> {
 		const loggerContext = `${UserRepository.name}/${this.getUserChats.name}`;
 		try {
-			const user = await this.userModel.findById(userId).lean();
+			const user = await this.userModel.findById(userId).lean(); // TODO: добавить populated версию
 
 			return user.chats;
 		} catch (error) {

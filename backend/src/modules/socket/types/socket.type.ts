@@ -1,8 +1,9 @@
 import { Server, Socket } from 'socket.io';
+import { MessageRdo } from 'src/modules/chat/types/message.type';
 import { UserGetRdo } from 'src/modules/user/rdo/get-user.rdo';
 
 type ClientEmits = {
-	['chat-message'](ctx: any): void;
+	['chat-message'](ctx: MessageRdo): void;
 };
 
 type EmptyObject = { [key in string]: never };

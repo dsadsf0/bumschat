@@ -30,7 +30,7 @@ export class UserService {
 	) {}
 
 	private adapterUserGetRdo(user: UserDocument): UserGetRdo {
-		return { username: user.username, id: user._id.toString() };
+		return { username: user.username, id: user._id.toString(), chats: user.chats.map(String) };
 	}
 
 	private setAuthCookie(username: string, response: Response): void {
@@ -66,17 +66,13 @@ export class UserService {
 		}
 	}
 
-	public async getUserByToken(token: string): Promise<UserGetRdo> {
-		const loggerContext = `${UserService.name}/${this.getUserByToken.name}`;
+	public async getUsersByToken(token: string): Promise<UserGetRdo[]> {
+		const loggerContext = `${UserService.name}/${this.getUsersByToken.name}`;
 
 		try {
-			const user = await this.userRepository.getUserByAuthToken(token);
+			const users = await this.userRepository.getUsersByAuthToken(token);
 
-			if (!user || user.softDeleted) {
-				throw new HttpException('User with this username does not exist or deleted', HttpStatus.NOT_FOUND);
-			}
-
-			return this.adapterUserGetRdo(user);
+			return users.map((user) => this.adapterUserGetRdo(user));
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -244,7 +240,12 @@ export class UserService {
 			if (!admin) {
 				throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
 			}
-			const user = await this.userRepository.deleteUser(username);
+			const user = await this.userRepository.deleteUserByName(username);
+
+			if (!user) {
+				throw new HttpException('User does not exist or already deleted', HttpStatus.NOT_FOUND);
+			}
+
 			await this.qrService.deleteQrImg(user.qrImg, user.username, user._id.toString());
 			this.logger.info(`COMPLETELY DELETED user ${user.username} by ${admin.username}!`, loggerContext, user.username, user._id.toString());
 		} catch (error) {
@@ -268,18 +269,6 @@ export class UserService {
 			const encryptedToken = this.crypt.encrypt(authToken, publicKey);
 
 			return encryptedToken;
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
-
-	public async getUserChats(userId: string): Promise<string[]> {
-		const loggerContext = `${UserService.name}/${this.getUserChats.name}`;
-		try {
-			const groupIds = await this.userRepository.getUserChats(userId);
-
-			return groupIds.map((id) => id.toString());
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);

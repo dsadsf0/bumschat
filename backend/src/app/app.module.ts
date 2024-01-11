@@ -10,6 +10,9 @@ import * as Joi from 'joi';
 import { QrService } from 'src/modules/qr-service/qr.service';
 import { SocketModule } from 'src/modules/socket/socket.module';
 import { CryptoModule } from 'src/modules/crypto/crypto.module';
+import { ChatModule } from 'src/modules/chat/chat.module';
+import { ChatMessageModule } from 'src/modules/chat-message/chat-message.module';
+import { RealTimeChatModule } from 'src/modules/chat-message/modules/real-time-chat/real-time-chat.module';
 
 @Module({
 	imports: [
@@ -28,12 +31,20 @@ import { CryptoModule } from 'src/modules/crypto/crypto.module';
 				GLOBAL_PRIVATE_KEY: Joi.string().required(),
 			}),
 		}),
-		MongooseModule.forRoot(process.env.MONGO_CONNECT, {
-			dbName: process.env.MONGO_NAME,
+		MongooseModule.forRootAsync({
+			imports: [ConfigModule],
+			useFactory: (configService: ConfigService<AppConfigSchema>) => ({
+				uri: configService.get('MONGO_CONNECT'),
+				dbName: configService.get('MONGO_NAME'),
+			}),
+			inject: [ConfigService],
 		}),
 		CryptoModule,
 		UserModule,
 		SocketModule,
+		ChatModule,
+		RealTimeChatModule,
+		ChatMessageModule,
 	],
 	controllers: [AppController],
 	providers: [AppService, QrService, ConfigService, SnatchedService],

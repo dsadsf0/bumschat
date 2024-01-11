@@ -46,6 +46,7 @@ export class AuthGuard implements CanActivate {
 			request.user = {
 				username: user.username,
 				id: user._id.toString(),
+				chats: user.chats.map(String),
 			};
 
 			return true;

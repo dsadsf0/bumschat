@@ -1,15 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import { Models } from 'src/core/consts/models';
 import { UserRolesValues } from 'src/core/consts/roles';
 import { DocumentModel } from 'src/core/types/document-model.type';
 import utcDayjs from 'src/core/utils/utcDayjs';
 
 export type UserDocument = DocumentModel<User>;
 
-@Schema({ timestamps: { updatedAt: true, createdAt: false } })
+@Schema()
 export class User {
 	@Prop({ type: String, required: true, unique: true })
 	username: string;
+
+	@Prop({ type: String, default: 'user' })
+	role?: UserRolesValues;
+
+	@Prop({ type: [Types.ObjectId], default: [], ref: Models.Chat })
+	chats: Types.ObjectId[];
 
 	@Prop({ type: String, required: true })
 	secretBase32: string;
@@ -31,12 +38,11 @@ export class User {
 
 	@Prop({ type: String, default: null })
 	softDeleted?: string | null;
-
-	@Prop({ type: String, default: 'user' })
-	role?: UserRolesValues;
-
-	@Prop({ type: [Types.ObjectId], default: [] }) // добавить ссылку на модель чатов
-	chats: Types.ObjectId[];
 }
 
-export const UserSchema = SchemaFactory.createForClass(User).index({ username: 1 }).index({ authToken: 1 });
+export const UserSchema = SchemaFactory.createForClass(User)
+	.index({ username: 1 })
+	.index({ authToken: 1 })
+	.index({ softDeleted: 1 })
+	.index({ createdAt: 1 })
+	.index({ updatedAt: 1 });

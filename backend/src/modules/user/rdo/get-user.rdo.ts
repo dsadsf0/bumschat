@@ -14,4 +14,11 @@ export class UserGetRdo {
 		type: String,
 	})
 	public username: string;
+
+	@ApiProperty({
+		description: 'Username of account',
+		example: ['3971b0e5568136a50063fc11'],
+		type: [String],
+	})
+	public chats: string[];
 }

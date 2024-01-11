@@ -1,4 +1,4 @@
-import { ChatType } from './chat.type';
+import { ChatType } from 'src/modules/chat/types/chat.type';
 
 type MessageBody = {
 	text: string;

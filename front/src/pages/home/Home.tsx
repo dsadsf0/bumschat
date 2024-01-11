@@ -25,6 +25,7 @@ const Home: React.FC = () => {
 	}
 
 	const sendMessage = (): void => {
+		// MOCK chat
 		socket.emit('chat-message', {
 			chat: {
 				id: 'mock-id',

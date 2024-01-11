@@ -3,7 +3,7 @@ import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as uuid from 'uuid';
-import * as qrcode from 'qrcode';
+import * as qrCode from 'qrcode';
 import handleError from 'src/core/utils/errorHandler';
 import utcDayjs from 'src/core/utils/utcDayjs';
 
@@ -27,7 +27,7 @@ export class QrService {
 		const loggerContext = `${QrService.name}/${this.otpAuthUrlToQrUrl.name}`;
 
 		try {
-			return await qrcode.toDataURL(secretUrl);
+			return await qrCode.toDataURL(secretUrl);
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -47,7 +47,7 @@ export class QrService {
 	}
 
 	public getFileName(): string {
-		return `${utcDayjs().unix}${uuid.v4()}.png`;
+		return `${utcDayjs().unix}-${uuid.v4()}.png`;
 	}
 
 	public getLogUsername(username?: string): string {

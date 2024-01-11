@@ -4,7 +4,7 @@ import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
 import { ChatService } from './chat.service';
 
 @Module({
-	// imports: [StandardChatModule, RealTimeChatModule, OnlyOnlineChatModule],
 	providers: [ChatService, ConfigService, SnatchedService],
+	exports: [ChatService],
 })
 export class ChatModule {}

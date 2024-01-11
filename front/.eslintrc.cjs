@@ -33,7 +33,7 @@ module.exports = {
         indent: ['error', 'tab', { SwitchCase: 1, ignoredNodes: ['PropertyDefinition'] }],
         quotes: [2, 'single', { allowTemplateLiterals: true, avoidEscape: true }],
 		semi: ['error', 'always'],
-        // 'max-len': ['warn', { code: 140 }],
+        'max-len': [1, { code: 160, ignoreStrings: true, ignoreUrls: true, ignoreTemplateLiterals: true, ignoreRegExpLiterals: true }],
 		'operator-linebreak': ['error', 'after'],
 		'dot-location': ['error', 'property'],
         'lines-between-class-members': ['error', 'always'],
