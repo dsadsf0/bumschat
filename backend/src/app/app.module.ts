@@ -13,6 +13,7 @@ import { CryptoModule } from 'src/modules/crypto/crypto.module';
 import { ChatModule } from 'src/modules/chat/chat.module';
 import { ChatMessageModule } from 'src/modules/chat-message/chat-message.module';
 import { RealTimeChatModule } from 'src/modules/chat-message/modules/real-time-chat/real-time-chat.module';
+import { ChatRoleModule } from 'src/modules/chat-role/chat-role.module';
 
 @Module({
 	imports: [
@@ -42,6 +43,7 @@ import { RealTimeChatModule } from 'src/modules/chat-message/modules/real-time-c
 		CryptoModule,
 		UserModule,
 		SocketModule,
+		ChatRoleModule,
 		ChatModule,
 		RealTimeChatModule,
 		ChatMessageModule,
