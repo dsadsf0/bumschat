@@ -17,6 +17,7 @@ import { UserLoginDto } from './dto/login-user.dto';
 import { AuthCheckedRequest } from './types/authCheckedTypes';
 import { UserRecoveryDto } from './dto/recovery-user.dto';
 import { UserCheckNameDto } from './dto/check-username.dto';
+import { AvatarService, AvatarTo } from '../avatar-service/avatar.service';
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,7 @@ export class UserService {
 		private readonly crypt: CryptoService,
 		private readonly qrService: QrService,
 		private readonly speakeasy: SpeakeasyService,
+		private readonly avatarService: AvatarService,
 		private readonly config: ConfigService<AppConfigSchema>,
 		private readonly logger: SnatchedService
 	) {}
@@ -99,14 +101,17 @@ export class UserService {
 			const recoverySecretHash = await this.crypt.uuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
 
 			const treatedQRData = await this.qrService.otpAuthUrlToQrData(secret.otpauth_url);
-			const fileName = await this.qrService.createQrImg(treatedQRData, username);
+			const qrImgFileName = await this.qrService.createQrImg(treatedQRData, username);
+
+			const avatarFileName = await this.avatarService.createAvatar(AvatarTo.User);
 
 			const newUser = await this.userRepository.createUser({
 				username,
+				avatar: avatarFileName,
 				secretBase32: encryptedSecretBase32,
 				recoverySecret: recoverySecretHash,
 				authToken: authTokenHash,
-				qrImg: fileName,
+				qrImg: qrImgFileName,
 				chats: [],
 			});
 

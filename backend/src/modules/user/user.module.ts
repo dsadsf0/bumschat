@@ -9,11 +9,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { QrService } from 'src/modules/qr-service/qr.service';
 import { SpeakeasyService } from 'src/modules/speakeasy/speakeasy.service';
 import { CryptoModule } from '../crypto/crypto.module';
+import { AvatarService } from '../avatar-service/avatar.service';
 
 @Module({
 	imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), CryptoModule],
 	controllers: [UserController],
-	providers: [UserService, UserRepository, SpeakeasyService, QrService, ConfigService, SnatchedService],
+	providers: [UserService, UserRepository, SpeakeasyService, QrService, AvatarService, ConfigService, SnatchedService],
 	exports: [UserService],
 })
 export class UserModule {}

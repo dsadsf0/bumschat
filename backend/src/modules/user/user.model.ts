@@ -12,6 +12,9 @@ export class User {
 	@Prop({ type: String, required: true, unique: true })
 	username: string;
 
+	@Prop({ type: String, required: true })
+	avatar: string;
+
 	@Prop({ type: String, default: 'user' })
 	role?: UserRolesValues;
 

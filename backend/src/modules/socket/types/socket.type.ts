@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { MessageRdo } from 'src/modules/chat/types/message.type';
+import { MessageRdo } from 'src/modules/chat-message/types/message.type';
 import { UserGetRdo } from 'src/modules/user/rdo/get-user.rdo';
 
 type ClientEmits = {

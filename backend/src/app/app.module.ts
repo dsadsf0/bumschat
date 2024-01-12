@@ -14,22 +14,27 @@ import { ChatModule } from 'src/modules/chat/chat.module';
 import { ChatMessageModule } from 'src/modules/chat-message/chat-message.module';
 import { RealTimeChatModule } from 'src/modules/chat-message/modules/real-time-chat/real-time-chat.module';
 import { ChatRoleModule } from 'src/modules/chat-role/chat-role.module';
+import { AvatarService } from 'src/modules/avatar-service/avatar.service';
+import axios from 'axios';
+
+axios.get('https://cataas.com/cat?type=square&position=centre').then((res) => console.log(res.data));
+// решить конфликты
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
 			envFilePath: `.${process.env.NODE_ENV}.env`,
 			validationSchema: Joi.object<AppConfigSchema, true>({
-				PORT: Joi.number().required(),
-				SOCKET_PORT: Joi.number().required(),
-				MONGO_CONNECT: Joi.string().required(),
-				MONGO_NAME: Joi.string().required(),
-				CLIENT_URL: Joi.string().required(),
-				PASS_SALT_ROUNDS: Joi.number().required(),
-				AUTH_TOKEN_SALT_ROUNDS: Joi.number().required(),
-				UUID_NAMESPACE: Joi.string().required(),
-				GLOBAL_PUBLIC_KEY: Joi.string().required(),
-				GLOBAL_PRIVATE_KEY: Joi.string().required(),
+				PORT: Joi.number(),
+				SOCKET_PORT: Joi.number(),
+				MONGO_CONNECT: Joi.string(),
+				MONGO_NAME: Joi.string(),
+				CLIENT_URL: Joi.string(),
+				PASS_SALT_ROUNDS: Joi.number(),
+				AUTH_TOKEN_SALT_ROUNDS: Joi.number(),
+				UUID_NAMESPACE: Joi.string(),
+				GLOBAL_PUBLIC_KEY: Joi.string(),
+				GLOBAL_PRIVATE_KEY: Joi.string(),
 			}),
 		}),
 		MongooseModule.forRootAsync({
@@ -49,6 +54,6 @@ import { ChatRoleModule } from 'src/modules/chat-role/chat-role.module';
 		ChatMessageModule,
 	],
 	controllers: [AppController],
-	providers: [AppService, QrService, ConfigService, SnatchedService],
+	providers: [AppService, QrService, AvatarService, ConfigService, SnatchedService],
 })
 export class AppModule {}

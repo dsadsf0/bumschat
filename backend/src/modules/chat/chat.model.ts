@@ -14,9 +14,12 @@ export class Chat {
 	name: string;
 
 	@Prop({ type: String, required: true })
+	avatar: string;
+
+	@Prop({ type: String, required: true })
 	type: ChatType;
 
-	@Prop({ required: true, type: [ChatUserRights] })
+	@Prop({ required: true })
 	users: ChatUserRights[];
 
 	@Prop({ required: true, type: Types.ObjectId, ref: Models.User })

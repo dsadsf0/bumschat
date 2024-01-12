@@ -34,6 +34,12 @@ export class ChatRole {
 	canChangeChatName?: boolean;
 
 	@Prop({ type: Boolean, default: false })
+	canChangeChatAvatar?: boolean;
+
+	@Prop({ type: Boolean, default: false })
+	canPinMessages?: boolean;
+
+	@Prop({ type: Boolean, default: false })
 	canAddMembers?: boolean;
 
 	@Prop({ type: Boolean, default: false })
