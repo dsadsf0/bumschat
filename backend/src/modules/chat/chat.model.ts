@@ -8,6 +8,7 @@ import { ChatUserRights } from './types/chat-user-rights.type';
 
 export type ChatDocument = DocumentModel<Chat>;
 
+// TODO: протестировать круд чатов особенно ChatUserRights
 @Schema()
 export class Chat {
 	@Prop({ type: String, required: true })
@@ -19,7 +20,7 @@ export class Chat {
 	@Prop({ type: String, required: true })
 	type: ChatType;
 
-	@Prop({ required: true })
+	@Prop({ required: true, type: [ChatUserRights] })
 	users: ChatUserRights[];
 
 	@Prop({ required: true, type: Types.ObjectId, ref: Models.User })

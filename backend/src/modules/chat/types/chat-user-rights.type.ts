@@ -1,10 +1,10 @@
 import { Types } from 'mongoose';
 
 // @Schema()
-export type ChatUserRights = {
+export class ChatUserRights {
 	// @Prop({ required: true, type: Types.ObjectId, ref: Models.User })
-	user: Types.ObjectId;
+	public user: Types.ObjectId;
 
 	// @Prop({ required: true, type: Types.ObjectId, ref: Models.ChatRole })
-	chatRole: Types.ObjectId;
-};
+	public chatRole: Types.ObjectId;
+}
