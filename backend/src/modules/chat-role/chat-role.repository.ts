@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ChatRole } from './chat-role.model';
 import { Model } from 'mongoose';
-import { SnatchedService } from '../snatched-logger/logger.service';
+import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import { DEFAULT_CHAT_ROLE_NAME } from 'src/core/consts/roles';
 
@@ -11,7 +11,7 @@ export class ChatRoleRepository {
 	constructor(
 		@InjectModel(ChatRole.name)
 		private readonly chatRoleModel: Model<ChatRole>,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
 	public async createChatRole(roleDto: ChatRole): Promise<ChatRole> {

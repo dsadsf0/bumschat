@@ -4,22 +4,19 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppConfigSchema } from './app.schema';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import { UserModule } from 'src/modules/user/user.module';
 import * as Joi from 'joi';
-import { QrService } from 'src/modules/qr-service/qr.service';
+import { QrService } from 'src/core/services/qr-service/qr.service';
 import { SocketModule } from 'src/modules/socket/socket.module';
 import { CryptoModule } from 'src/modules/crypto/crypto.module';
 import { ChatModule } from 'src/modules/chat/chat.module';
 import { ChatMessageModule } from 'src/modules/chat-message/chat-message.module';
 import { RealTimeChatModule } from 'src/modules/chat-message/modules/real-time-chat/real-time-chat.module';
 import { ChatRoleModule } from 'src/modules/chat-role/chat-role.module';
-import { AvatarService } from 'src/modules/avatar-service/avatar.service';
-import axios from 'axios';
+import { AvatarService } from 'src/core/services/avatar-service/avatar.service';
 
-axios.get('https://cataas.com/cat?type=square&position=centre').then((res) => console.log(res.data));
-// решить конфликты
-
+// TODO: решить конфликты
 @Module({
 	imports: [
 		ConfigModule.forRoot({
@@ -54,6 +51,6 @@ axios.get('https://cataas.com/cat?type=square&position=centre').then((res) => co
 		ChatMessageModule,
 	],
 	controllers: [AppController],
-	providers: [AppService, QrService, AvatarService, ConfigService, SnatchedService],
+	providers: [AppService, QrService, AvatarService, ConfigService, SnatchedLogger],
 })
 export class AppModule {}

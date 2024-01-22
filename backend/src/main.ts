@@ -2,7 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from 'src/app/app.module';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import * as cookieParser from 'cookie-parser';
 import Endpoints from 'src/core/consts/endpoint';
 
@@ -23,7 +23,7 @@ async function bootstrap(): Promise<void> {
 	SwaggerModule.setup(`${Endpoints.Global}/docs`, app, document);
 
 	await app.listen(PORT, () => {
-		app.get(SnatchedService).debug(`SERVER STARTED ON PORT ${PORT}`, 'SERVER');
+		app.get(SnatchedLogger).debug(`SERVER STARTED ON PORT ${PORT}`, 'SERVER');
 	});
 }
 

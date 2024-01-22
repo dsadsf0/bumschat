@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as uuid from 'uuid';
@@ -11,7 +11,7 @@ export const QR_FOLDER_NAME = 'QR-codes';
 
 @Injectable()
 export class QrService {
-	constructor(private readonly logger: SnatchedService) {}
+	constructor(private readonly logger: SnatchedLogger) {}
 
 	public treatQRDataUrl(qrDataURL: string): string {
 		const loggerContext = `${QrService.name}/${this.treatQRDataUrl.name}`;

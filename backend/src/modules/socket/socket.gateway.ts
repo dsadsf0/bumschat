@@ -8,13 +8,14 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 } from '@nestjs/websockets';
-import { SnatchedService } from '../snatched-logger/logger.service';
+import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets/errors/ws-exception';
 import handleError from 'src/core/utils/errorHandler';
 import { config } from 'dotenv';
 import { SocketService } from './socket.service';
 import { SocketClient, SocketServer } from './types/socket.type';
-import { MessagePayload } from '../chat-message/types/message.type';
+import { MessageContext, MessagePayload } from '../chat-message/types/message.type';
+import { UserGetRdo } from '../user/rdo/get-user.rdo';
 config({ path: `.${process.env.NODE_ENV}.env` });
 
 const SOCKET_PORT = Number(process.env.SOCKET_PORT);
@@ -28,7 +29,7 @@ const SOCKET_PORT = Number(process.env.SOCKET_PORT);
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
 	constructor(
 		private readonly socketService: SocketService,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
 	@WebSocketServer()
@@ -53,6 +54,16 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 			next();
 		}
 	};
+
+	private adapterToMessageContext(payload: MessagePayload, user: UserGetRdo): MessageContext {
+		return {
+			...payload,
+			from: {
+				id: user.id,
+				username: user.username,
+			},
+		};
+	}
 
 	public async handleConnection(client: SocketClient): Promise<void> {
 		const loggerContext = `${SocketGateway.name}/${this.handleConnection.name}`;
@@ -100,18 +111,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 		const loggerContext = `${SocketGateway.name}/${this.handleDisconnect.name}`;
 
 		try {
-			const treatedMessage = await this.socketService.treatMessage({
-				...ctx,
-				from: {
-					id: client.data.user.id,
-					username: client.data.user.username,
-				},
-			});
+			const msgContext = this.adapterToMessageContext(ctx, client.data.user);
+			const treatedMessage = await this.socketService.treatMessage(msgContext);
 
 			const groupUsers = await this.server.in(ctx.chat.id).fetchSockets();
 
 			for (const chatUser of groupUsers) {
-				const userMessageRdo = this.socketService.getUserEncryptedMessageRdo(treatedMessage, chatUser.data.publicKey);
+				const userMessageRdo = this.socketService.encryptMessageRdo(treatedMessage, chatUser.data.publicKey);
 				chatUser.emit('chat-message', userMessageRdo);
 			}
 		} catch (error) {

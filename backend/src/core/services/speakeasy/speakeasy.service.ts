@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 
 @Injectable()
 export class SpeakeasyService {
-	constructor(private readonly logger: SnatchedService) {}
+	constructor(private readonly logger: SnatchedLogger) {}
 
 	public generateSecret(username: string): speakeasy.GeneratedSecret {
 		const loggerContext = `${SpeakeasyService.name}/${this.generateSecret.name}`;

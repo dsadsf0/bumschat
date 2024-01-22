@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AbstractChatMessageService } from '../../abstractions/chat-service';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import { MessageContext, MessageRdo } from '../../types/message.type';
 import { Types } from 'mongoose';
 import utcDayjs from 'src/core/utils/utcDayjs';
@@ -8,7 +8,7 @@ import handleError from 'src/core/utils/errorHandler';
 
 @Injectable()
 export class RealTimeChatService implements AbstractChatMessageService {
-	constructor(private readonly logger: SnatchedService) {}
+	constructor(private readonly logger: SnatchedLogger) {}
 
 	public async treatMessage(messagePayload: MessageContext): Promise<MessageRdo> {
 		const loggerContext = `${RealTimeChatService.name}/${this.treatMessage.name}`;

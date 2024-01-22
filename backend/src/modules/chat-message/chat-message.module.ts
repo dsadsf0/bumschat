@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import { RealTimeChatModule } from './modules/real-time-chat/real-time-chat.module';
 import { ChatMessageService } from './chat-message.service';
 
@@ -9,7 +9,7 @@ import { ChatMessageService } from './chat-message.service';
 		RealTimeChatModule,
 		// StandardChatModule, OnlyOnlineChatModule
 	],
-	providers: [ChatMessageService, ConfigService, SnatchedService],
+	providers: [ChatMessageService, ConfigService, SnatchedLogger],
 	exports: [ChatMessageService],
 })
 export class ChatMessageModule {}

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SnatchedService } from '../snatched-logger/logger.service';
+import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import { RealTimeChatService } from './modules/real-time-chat/real-time-chat.service';
 import { MessageContext, MessageRdo } from './types/message.type';
 import handleError from 'src/core/utils/errorHandler';
@@ -11,7 +11,7 @@ export class ChatMessageService {
 	private chatService: Record<ChatType, AbstractChatMessageService>;
 
 	constructor(
-		private readonly logger: SnatchedService,
+		private readonly logger: SnatchedLogger,
 		realTimeChatService: RealTimeChatService
 	) {
 		this.chatService = {

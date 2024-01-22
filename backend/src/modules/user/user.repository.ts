@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import { User, UserDocument } from './user.model';
 import { DEFAULT_DATE_FORMAT } from 'src/core/consts/dateFormat';
@@ -12,7 +12,7 @@ export class UserRepository {
 	constructor(
 		@InjectModel(User.name)
 		private readonly userModel: Model<User>,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
 	public async getUserByName(username: string): Promise<UserDocument | null> {

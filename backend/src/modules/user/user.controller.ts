@@ -8,7 +8,7 @@ import { AuthCheckedRequest } from './types/authCheckedTypes';
 import { UserGetRdo } from './rdo/get-user.rdo';
 import { AuthGuard } from './guards/auth.guard';
 import { resolve } from 'path';
-import { QR_FOLDER_NAME } from 'src/modules/qr-service/qr.service';
+import { QR_FOLDER_NAME } from 'src/core/services/qr-service/qr.service';
 import { UserLoginDto } from './dto/login-user.dto';
 import { Delete } from '@nestjs/common/decorators/http';
 import { UserRecoveryDto } from './dto/recovery-user.dto';

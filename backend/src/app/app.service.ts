@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import utcDayjs from 'src/core/utils/utcDayjs';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 
 @Injectable()
 export class AppService {
-	constructor(private readonly logger: SnatchedService) {}
+	constructor(private readonly logger: SnatchedLogger) {}
 
 	public ping(): string {
 		const loggerContext = `${AppService.name}/${this.ping.name}`;

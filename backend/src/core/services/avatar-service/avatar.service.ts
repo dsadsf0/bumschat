@@ -1,21 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { SnatchedService } from '../snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as uuid from 'uuid';
 import utcDayjs from 'src/core/utils/utcDayjs';
 import axios from 'axios';
+import { SnatchedLogger } from '../snatched-logger/logger.service';
 
 export const AvatarTo = {
 	User: 'user',
 	Chat: 'chat',
 } as const;
+
 export type AvatarToType = (typeof AvatarTo)[keyof typeof AvatarTo];
 
 @Injectable()
 export class AvatarService {
-	constructor(private readonly logger: SnatchedService) {}
+	constructor(private readonly logger: SnatchedLogger) {}
 
 	public getFileName(): string {
 		return `${utcDayjs().unix}-${uuid.v4()}.png`;
@@ -33,12 +34,13 @@ export class AvatarService {
 
 			const filePath = path.resolve(this.getFolderName(type), fileName);
 
-			// получаем фото котика и создаем файл для него
-			const [{ data: avatar }] = await Promise.all([axios.get('https://cataas.com/cat?type=square&position=centre'), fs.ensureFile(filePath)]);
+			const [{ data: avatar }] = await Promise.all([
+				axios.get('https://cataas.com/cat?type=square&position=centre', { responseType: 'arraybuffer' }),
+				fs.ensureFile(filePath),
+			]);
 
-			await fs.writeFile(filePath, avatar, { encoding: 'base64' });
-
-			console.log(avatar);
+			const treatedAvatar = Buffer.from(avatar, 'binary').toString('base64');
+			await fs.writeFile(filePath, treatedAvatar, { encoding: 'base64' });
 
 			return fileName;
 		} catch (error) {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SnatchedService } from '../snatched-logger/logger.service';
+import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import { Chat, ChatDocument } from './chat.model';
 import { ChatRepository } from './chat.repository';
@@ -10,7 +10,7 @@ export class ChatService {
 	constructor(
 		private readonly chatRepository: ChatRepository,
 		private readonly chatRoleService: ChatRoleService,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
 	public async createChat(chatDto: Chat): Promise<ChatDocument> {

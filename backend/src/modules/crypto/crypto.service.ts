@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigSchema } from 'src/app/app.schema';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import handleError from 'src/core/utils/errorHandler';
 import * as uuid from 'uuid';
 import * as bcrypt from 'bcrypt';
@@ -15,7 +15,7 @@ export class CryptoService {
 
 	constructor(
 		private readonly config: ConfigService<AppConfigSchema>,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {
 		this.cryptRsa = new NodeRsa({ b: 2048 });
 		this.globalRsa = new NodeRsa();

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { CryptoService } from '../crypto/crypto.service';
-import { SnatchedService } from '../snatched-logger/logger.service';
+import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets';
 import { SocketClient } from './types/socket.type';
 import handleError from 'src/core/utils/errorHandler';
@@ -14,10 +14,10 @@ export class SocketService {
 		private readonly userService: UserService,
 		private readonly chatMessageService: ChatMessageService,
 		private readonly crypt: CryptoService,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
-	async authMiddleware(client: SocketClient): Promise<void> {
+	public async authMiddleware(client: SocketClient): Promise<void> {
 		const encryptedToken = client.handshake.auth.token as string;
 		const publicKey = client.handshake.auth.publicKey as string;
 
@@ -52,17 +52,28 @@ export class SocketService {
 		client.data.publicKey = publicKey;
 	}
 
-	public async treatMessage(ctx: MessageContext): Promise<MessageRdo> {
-		const loggerContext = `${SocketService.name}/${this.treatMessage.name}`;
-
+	private decryptMessageContext(ctx: MessageContext): MessageContext {
+		const loggerContext = `${SocketService.name}/${this.decryptMessageContext.name}`;
 		try {
-			const treatedMessage = await this.chatMessageService.treatMessage({
+			return {
 				...ctx,
 				message: {
 					...ctx.message,
 					text: this.crypt.decrypt(ctx.message.text),
 				},
-			});
+			};
+		} catch (error) {
+			this.logger.error(error, loggerContext);
+			handleError(error);
+		}
+	}
+
+	public async treatMessage(ctx: MessageContext): Promise<MessageRdo> {
+		const loggerContext = `${SocketService.name}/${this.treatMessage.name}`;
+
+		try {
+			const decryptedMsgContext = this.decryptMessageContext(ctx);
+			const treatedMessage = await this.chatMessageService.treatMessage(decryptedMsgContext);
 
 			return treatedMessage;
 		} catch (error) {
@@ -71,8 +82,8 @@ export class SocketService {
 		}
 	}
 
-	public getUserEncryptedMessageRdo(msg: MessageRdo, userPublicKey: string): MessageRdo {
-		const loggerContext = `${SocketService.name}/${this.getUserEncryptedMessageRdo.name}`;
+	public encryptMessageRdo(msg: MessageRdo, userPublicKey: string): MessageRdo {
+		const loggerContext = `${SocketService.name}/${this.encryptMessageRdo.name}`;
 
 		try {
 			return {

@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { Models } from 'src/core/consts/models';
-import { UserRolesValues } from 'src/core/consts/roles';
 import { DocumentModel } from 'src/core/types/document-model.type';
+import { UserRolesValues } from 'src/core/types/roles.type';
 import utcDayjs from 'src/core/utils/utcDayjs';
 
 export type UserDocument = DocumentModel<User>;

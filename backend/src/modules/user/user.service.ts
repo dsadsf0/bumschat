@@ -1,23 +1,23 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigSchema } from 'src/app/app.schema';
-import { SnatchedService } from 'src/modules/snatched-logger/logger.service';
+import { SnatchedLogger } from 'src/core/services/snatched-logger/logger.service';
 import { UserCreateDto } from './dto/create-user.dto';
 import handleError from 'src/core/utils/errorHandler';
 import { UserRepository } from './user.repository';
-import { QrService } from 'src/modules/qr-service/qr.service';
+import { QrService } from 'src/core/services/qr-service/qr.service';
 import { UserCreateRdo } from './rdo/create-user.rdo';
 import { Response } from 'express';
 import { CryptoService } from 'src/modules/crypto/crypto.service';
 import { COOKIE_OPTIONS } from 'src/core/consts/cookies';
-import { SpeakeasyService } from 'src/modules/speakeasy/speakeasy.service';
+import { SpeakeasyService } from 'src/core/services/speakeasy/speakeasy.service';
 import { UserGetRdo } from './rdo/get-user.rdo';
 import { UserDocument } from './user.model';
 import { UserLoginDto } from './dto/login-user.dto';
 import { AuthCheckedRequest } from './types/authCheckedTypes';
 import { UserRecoveryDto } from './dto/recovery-user.dto';
 import { UserCheckNameDto } from './dto/check-username.dto';
-import { AvatarService, AvatarTo } from '../avatar-service/avatar.service';
+import { AvatarService, AvatarTo } from 'src/core/services/avatar-service/avatar.service';
 
 @Injectable()
 export class UserService {
@@ -28,7 +28,7 @@ export class UserService {
 		private readonly speakeasy: SpeakeasyService,
 		private readonly avatarService: AvatarService,
 		private readonly config: ConfigService<AppConfigSchema>,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
 	private adapterUserGetRdo(user: UserDocument): UserGetRdo {

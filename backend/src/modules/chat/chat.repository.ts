@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { SnatchedService } from '../snatched-logger/logger.service';
+import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import { Chat, ChatDocument } from './chat.model';
 import { Model, Types } from 'mongoose';
 import handleError from 'src/core/utils/errorHandler';
@@ -13,7 +13,7 @@ export class ChatRepository {
 	constructor(
 		@InjectModel(Chat.name)
 		private readonly chatModel: Model<Chat>,
-		private readonly logger: SnatchedService
+		private readonly logger: SnatchedLogger
 	) {}
 
 	public async createChat(chatDto: Chat): Promise<ChatDocument> {
@@ -27,12 +27,13 @@ export class ChatRepository {
 		}
 	}
 
-	// TODO: Протестить, мб надо Types.ObjectId[]
 	public async getChats(chatIds: string[]): Promise<ChatDocument[]> {
 		const loggerContext = `${ChatRepository.name}/${this.getChats.name}`;
 
+		const treatedChatIds = chatIds.map((id) => new Types.ObjectId(id));
+
 		try {
-			return await this.chatModel.find({ _id: { $in: chatIds } });
+			return await this.chatModel.find({ _id: { $in: treatedChatIds } });
 		} catch (error) {
 			this.logger.error(error, loggerContext);
 			handleError(error);
@@ -105,9 +106,10 @@ export class ChatRepository {
 		}
 	}
 
-	// 						TODO: Протестить, мб надо Types.ObjectId[]
 	public async removeUsersFromChat(chatId: string, users: string[]): Promise<ChatDocument> {
 		const loggerContext = `${ChatRepository.name}/${this.removeUsersFromChat.name}`;
+
+		const treatedUserIds = users.map((id) => new Types.ObjectId(id));
 
 		try {
 			const chat = await this.chatModel.findById(chatId);
@@ -119,7 +121,7 @@ export class ChatRepository {
 			return await this.chatModel.findByIdAndUpdate(
 				chatId,
 				{
-					$pull: { 'users.user': { $in: users } },
+					$pull: { 'users.user': { $in: treatedUserIds } },
 				},
 				{ new: true }
 			);
