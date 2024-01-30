@@ -15,57 +15,57 @@ import { initSocket } from '@/utils/socket/init-socket';
 import cryptService from '@/utils/crypt/crypt-service';
 
 const App: React.FC = () => {
-	const dispatch = useAppDispatch();
-	const user = useAppSelector(getUser);
-	const [isAppInit, setIsAppInit] = useState<boolean>(false);
+    const dispatch = useAppDispatch();
+    const user = useAppSelector(getUser);
+    const [isAppInit, setIsAppInit] = useState<boolean>(false);
 
-	const initApp = async (): Promise<void> => {
-		setIsAppInit(false);
-		const [publicKey] = await Promise.all([UserService.getPublicKey(), dispatch(UserService.getUser())]);
-		cryptService.setEncryptKey(publicKey);
-		setIsAppInit(true);
-	};
+    const initApp = async (): Promise<void> => {
+        setIsAppInit(false);
+        const [publicKey] = await Promise.all([UserService.getPublicKey(), dispatch(UserService.getUser())]);
+        cryptService.setEncryptKey(publicKey);
+        setIsAppInit(true);
+    };
 
-	const getAndTreatToken = async (username: string): Promise<{ token: string; publicKey: string }> => {
-		const clientPublicKey = cryptService.getPublicKey();
-		const { token: userToken, publicKey: serverPublicKey } = await UserService.getToken(clientPublicKey);
-		const token = cryptService.decrypt(userToken);
-		return {
-			token: cryptService.encryptByKey(`${token}_${username}`, serverPublicKey),
-			publicKey: clientPublicKey,
-		};
-	};
+    const getAndTreatToken = async (username: string): Promise<{ token: string; publicKey: string }> => {
+        const clientPublicKey = cryptService.getPublicKey();
+        const { token: userToken, publicKey: serverPublicKey } = await UserService.getToken(clientPublicKey);
+        const token = cryptService.decrypt(userToken);
+        return {
+            token: cryptService.encryptByKey(`${token}_${username}`, serverPublicKey),
+            publicKey: clientPublicKey,
+        };
+    };
 
-	const connectToSocket = async (username: string): Promise<void> => {
-		const { token, publicKey } = await getAndTreatToken(username);
-		await initSocket(token, publicKey);
-	};
+    const connectToSocket = async (username: string): Promise<void> => {
+        const { token, publicKey } = await getAndTreatToken(username);
+        await initSocket(token, publicKey);
+    };
 
-	useEffect(() => {
-		initApp();
-	}, []);
+    useEffect(() => {
+        initApp();
+    }, []);
 
-	useEffect(() => {
-		if (user) {
-			connectToSocket(user.username);
-		}
-	}, [user]);
+    useEffect(() => {
+        if (user) {
+            connectToSocket(user.username);
+        }
+    }, [user]);
 
-	if (!isAppInit) {
-		return <Loader />;
-	}
+    if (!isAppInit) {
+        return <Loader />;
+    }
 
-	return (
-		<BrowserRouter>
-			<Routes>
-				<Route path={MainRoutes.Welcome} element={<Welcome />} />
-				<Route path={MainRoutes.Home} element={<Home />} />
-				<Route path={MainRoutes.Login} element={<Login />} />
-				<Route path={MainRoutes.Signup} element={<Signup />} />
-				<Route path={MainRoutes.Recovery} element={<Recovery />} />
-			</Routes>
-		</BrowserRouter>
-	);
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path={MainRoutes.Welcome} element={<Welcome />} />
+                <Route path={MainRoutes.Home} element={<Home />} />
+                <Route path={MainRoutes.Login} element={<Login />} />
+                <Route path={MainRoutes.Signup} element={<Signup />} />
+                <Route path={MainRoutes.Recovery} element={<Recovery />} />
+            </Routes>
+        </BrowserRouter>
+    );
 };
 
 export default App;

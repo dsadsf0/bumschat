@@ -8,25 +8,25 @@ import handleError from 'src/core/utils/errorHandler';
 
 @Injectable()
 export class RealTimeChatService implements AbstractChatMessageService {
-	constructor(private readonly logger: SnatchedLogger) {}
+    constructor(private readonly logger: SnatchedLogger) {}
 
-	public async treatMessage(messagePayload: MessageContext): Promise<MessageRdo> {
-		const loggerContext = `${RealTimeChatService.name}/${this.treatMessage.name}`;
+    public async treatMessage(messagePayload: MessageContext): Promise<MessageRdo> {
+        const loggerContext = `${RealTimeChatService.name}/${this.treatMessage.name}`;
 
-		try {
-			const treatedMessage = {
-				...messagePayload,
-				id: new Types.ObjectId().toString(),
-				timestamp: utcDayjs().unix(),
-				edited: null,
-			};
+        try {
+            const treatedMessage = {
+                ...messagePayload,
+                id: new Types.ObjectId().toString(),
+                timestamp: utcDayjs().unix(),
+                edited: null,
+            };
 
-			this.logger.log(loggerContext, 'Treated message', treatedMessage);
+            this.logger.log(loggerContext, 'Treated message', treatedMessage);
 
-			return treatedMessage;
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return treatedMessage;
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 }

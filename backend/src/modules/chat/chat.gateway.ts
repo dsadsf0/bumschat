@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
+import { SnatchedService } from '../snatched-logger/logger.service';
 import { RealTimeChatService } from './modules/real-time-chat/real-time-chat.service';
-import { MessageContext, MessageRdo } from './types/message.type';
+import { ChatType } from './types/chat.type';
+import { AbstractChatService } from './abstractions/chat-service.abstraction';
 import handleError from 'src/core/utils/errorHandler';
-import { ChatType } from '../chat/types/chat.type';
-import { AbstractChatMessageService } from './abstractions/chat-service';
+import { MessageContext, MessageRdo } from './types/message.type';
 
 @Injectable()
-export class ChatMessageService {
-    private chatService: Record<ChatType, AbstractChatMessageService>;
+export class ChatGateway {
+    private chatService: Record<ChatType, AbstractChatService>;
 
     constructor(
-        private readonly logger: SnatchedLogger,
-        realTimeChatService: RealTimeChatService
+        realTimeChatService: RealTimeChatService,
+        private readonly logger: SnatchedService
     ) {
         this.chatService = {
             StandardChat: realTimeChatService,
@@ -22,7 +22,7 @@ export class ChatMessageService {
     }
 
     public async treatMessage(ctx: MessageContext): Promise<MessageRdo> {
-        const loggerContext = `${ChatMessageService.name}/${this.treatMessage.name}`;
+        const loggerContext = `${ChatGateway.name}/${this.treatMessage.name}`;
 
         try {
             return await this.chatService[ctx.chat.type].treatMessage(ctx);

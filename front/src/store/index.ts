@@ -3,11 +3,11 @@ import { Action, combineReducers } from 'redux';
 import UserSlice from './user/UserSlice';
 
 const rootReducer = combineReducers({
-	user: UserSlice,
+    user: UserSlice,
 });
 
 export const store = configureStore({
-	reducer: rootReducer,
+    reducer: rootReducer,
 });
 
 export type AppDispatch = typeof store.dispatch;

@@ -4,7 +4,7 @@ import { CryptoService } from './crypto.service';
 import { Module } from '@nestjs/common';
 
 @Module({
-	providers: [CryptoService, ConfigService, SnatchedLogger],
-	exports: [CryptoService],
+    providers: [CryptoService, ConfigService, SnatchedLogger],
+    exports: [CryptoService],
 })
 export class CryptoModule {}

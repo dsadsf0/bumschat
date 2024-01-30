@@ -21,262 +21,289 @@ import { AvatarService, AvatarTo } from 'src/core/services/avatar-service/avatar
 
 @Injectable()
 export class UserService {
-	constructor(
-		private readonly userRepository: UserRepository,
-		private readonly crypt: CryptoService,
-		private readonly qrService: QrService,
-		private readonly speakeasy: SpeakeasyService,
-		private readonly avatarService: AvatarService,
-		private readonly config: ConfigService<AppConfigSchema>,
-		private readonly logger: SnatchedLogger
-	) {}
+    constructor(
+        private readonly userRepository: UserRepository,
+        private readonly crypt: CryptoService,
+        private readonly qrService: QrService,
+        private readonly speakeasy: SpeakeasyService,
+        private readonly avatarService: AvatarService,
+        private readonly config: ConfigService<AppConfigSchema>,
+        private readonly logger: SnatchedLogger
+    ) {}
 
-	private adapterUserGetRdo(user: UserDocument): UserGetRdo {
-		return { username: user.username, id: user._id.toString(), chats: user.chats.map(String) };
-	}
+    private adapterUserGetRdo(user: UserDocument): UserGetRdo {
+        return { username: user.username, id: user._id.toString(), chats: user.chats.map(String) };
+    }
 
-	private setAuthCookie(username: string, response: Response): void {
-		const authToken = this.crypt.globalEncryptPrivate(username);
-		response.cookie('authToken', authToken, COOKIE_OPTIONS);
-	}
+    private setAuthCookie(username: string, response: Response): void {
+        const authToken = this.crypt.globalEncryptPrivate(username);
+        response.cookie('authToken', authToken, COOKIE_OPTIONS);
+    }
 
-	public getPublicKey(): string {
-		const loggerContext = `${UserService.name}/${this.getPublicKey.name}`;
+    public getPublicKey(): string {
+        const loggerContext = `${UserService.name}/${this.getPublicKey.name}`;
 
-		try {
-			return this.crypt.getPublicKey();
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+        try {
+            return this.crypt.getPublicKey();
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async getQrImg(username: string): Promise<string> {
-		const loggerContext = `${UserService.name}/${this.getQrImg.name}`;
+    public async getQrImg(username: string): Promise<string> {
+        const loggerContext = `${UserService.name}/${this.getQrImg.name}`;
 
-		try {
-			const user = await this.userRepository.getUserByName(username);
+        try {
+            const user = await this.userRepository.getUserByName(username);
 
-			if (!user) {
-				throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
-			}
+            if (!user) {
+                throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
+            }
 
-			return user.qrImg;
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return user.qrImg;
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async getUsersByToken(token: string): Promise<UserGetRdo[]> {
-		const loggerContext = `${UserService.name}/${this.getUsersByToken.name}`;
+    public async getUsersByToken(token: string): Promise<UserGetRdo[]> {
+        const loggerContext = `${UserService.name}/${this.getUsersByToken.name}`;
 
-		try {
-			const users = await this.userRepository.getUsersByAuthToken(token);
+        try {
+            const users = await this.userRepository.getUsersByAuthToken(token);
 
-			return users.map((user) => this.adapterUserGetRdo(user));
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return users.map((user) => this.adapterUserGetRdo(user));
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async signUp({ username, clientPublicKey }: UserCreateDto, response: Response): Promise<UserCreateRdo> {
-		const loggerContext = `${UserService.name}/${this.signUp.name}`;
+    public async signUp({ username, clientPublicKey }: UserCreateDto, response: Response): Promise<UserCreateRdo> {
+        const loggerContext = `${UserService.name}/${this.signUp.name}`;
 
-		try {
-			const user = await this.userRepository.getUserByName(username);
-			if (user) {
-				throw new HttpException('This username is taken', HttpStatus.BAD_REQUEST);
-			}
+        try {
+            const user = await this.userRepository.getUserByName(username);
+            if (user) {
+                throw new HttpException('This username is taken', HttpStatus.BAD_REQUEST);
+            }
 
-			const secret = this.speakeasy.generateSecret(username);
-			const encryptedSecretBase32 = this.crypt.globalEncrypt(secret.base32);
+            const secret = this.speakeasy.generateSecret(username);
+            const encryptedSecretBase32 = this.crypt.globalEncrypt(secret.base32);
 
-			const authToken = this.crypt.globalEncryptPrivate(username);
-			const authTokenHash = await this.crypt.uuidAndHash(authToken, this.config.get('AUTH_TOKEN_SALT_ROUNDS'));
+            const authToken = this.crypt.globalEncryptPrivate(username);
+            const authTokenHash = await this.crypt.uuidAndHash(authToken, this.config.get('AUTH_TOKEN_SALT_ROUNDS'));
 
-			const recoverySecret = this.crypt.shortPassGen();
-			const recoverySecretClientEncrypted = this.crypt.encrypt(recoverySecret, clientPublicKey);
-			const recoverySecretHash = await this.crypt.uuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
+            const recoverySecret = this.crypt.shortPassGen();
+            const recoverySecretClientEncrypted = this.crypt.encrypt(recoverySecret, clientPublicKey);
+            const recoverySecretHash = await this.crypt.uuidAndHash(
+                recoverySecret,
+                this.config.get('PASS_SALT_ROUNDS')
+            );
 
-			const treatedQRData = await this.qrService.otpAuthUrlToQrData(secret.otpauth_url);
-			const qrImgFileName = await this.qrService.createQrImg(treatedQRData, username);
+            const treatedQRData = await this.qrService.otpAuthUrlToQrData(secret.otpauth_url);
+            const qrImgFileName = await this.qrService.createQrImg(treatedQRData, username);
 
-			const avatarFileName = await this.avatarService.createAvatar(AvatarTo.User);
+            const avatarFileName = await this.avatarService.createAvatar(AvatarTo.User);
 
-			const newUser = await this.userRepository.createUser({
-				username,
-				avatar: avatarFileName,
-				secretBase32: encryptedSecretBase32,
-				recoverySecret: recoverySecretHash,
-				authToken: authTokenHash,
-				qrImg: qrImgFileName,
-				chats: [],
-			});
+            const newUser = await this.userRepository.createUser({
+                username,
+                avatar: avatarFileName,
+                secretBase32: encryptedSecretBase32,
+                recoverySecret: recoverySecretHash,
+                authToken: authTokenHash,
+                qrImg: qrImgFileName,
+                chats: [],
+            });
 
-			this.logger.info(`Registered new user ${username}!`, loggerContext, username, newUser._id.toString());
+            this.logger.info(`Registered new user ${username}!`, loggerContext, username, newUser._id.toString());
 
-			response.cookie('authToken', authToken, COOKIE_OPTIONS);
+            response.cookie('authToken', authToken, COOKIE_OPTIONS);
 
-			return {
-				user: this.adapterUserGetRdo(newUser),
-				recoverySecret: recoverySecretClientEncrypted,
-			};
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return {
+                user: this.adapterUserGetRdo(newUser),
+                recoverySecret: recoverySecretClientEncrypted,
+            };
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async checkUsername({ username }: UserCheckNameDto): Promise<boolean> {
-		const loggerContext = `${UserService.name}/${this.checkUsername.name}`;
+    public async checkUsername({ username }: UserCheckNameDto): Promise<boolean> {
+        const loggerContext = `${UserService.name}/${this.checkUsername.name}`;
 
-		try {
-			const user = await this.userRepository.getUserByName(username);
+        try {
+            const user = await this.userRepository.getUserByName(username);
 
-			if (!user) {
-				throw new HttpException('User with this username does not exist', HttpStatus.BAD_REQUEST);
-			}
+            if (!user) {
+                throw new HttpException('User with this username does not exist', HttpStatus.BAD_REQUEST);
+            }
 
-			return true;
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return true;
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async login({ username, verificationCode: encryptedVerificationCode }: UserLoginDto, response: Response): Promise<UserGetRdo> {
-		const loggerContext = `${UserService.name}/${this.login.name}`;
+    public async login(
+        { username, verificationCode: encryptedVerificationCode }: UserLoginDto,
+        response: Response
+    ): Promise<UserGetRdo> {
+        const loggerContext = `${UserService.name}/${this.login.name}`;
 
-		try {
-			const user = await this.userRepository.getUserByName(username);
+        try {
+            const user = await this.userRepository.getUserByName(username);
 
-			if (!user || user.softDeleted) {
-				throw new HttpException('This user does not exist or deleted', HttpStatus.NOT_FOUND);
-			}
+            if (!user || user.softDeleted) {
+                throw new HttpException('This user does not exist or deleted', HttpStatus.NOT_FOUND);
+            }
 
-			const secretBase32 = this.crypt.globalDecrypt(user.secretBase32);
+            const secretBase32 = this.crypt.globalDecrypt(user.secretBase32);
 
-			const verificationCode = this.crypt.decrypt(encryptedVerificationCode);
-			const isVerificationCodeValid = this.speakeasy.validateCode(secretBase32, verificationCode);
-			if (!isVerificationCodeValid) {
-				throw new HttpException('Does not correct 2FA code', HttpStatus.UNAUTHORIZED);
-			}
+            const verificationCode = this.crypt.decrypt(encryptedVerificationCode);
+            const isVerificationCodeValid = this.speakeasy.validateCode(secretBase32, verificationCode);
+            if (!isVerificationCodeValid) {
+                throw new HttpException('Does not correct 2FA code', HttpStatus.UNAUTHORIZED);
+            }
 
-			this.logger.info(`${username} logged in!`, loggerContext, username, user._id.toString());
+            this.logger.info(`${username} logged in!`, loggerContext, username, user._id.toString());
 
-			this.setAuthCookie(username, response);
+            this.setAuthCookie(username, response);
 
-			return this.adapterUserGetRdo(user);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return this.adapterUserGetRdo(user);
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async logout(request: AuthCheckedRequest, response: Response): Promise<void> {
-		const loggerContext = `${UserService.name}/${this.logout.name}`;
+    public async logout(request: AuthCheckedRequest, response: Response): Promise<void> {
+        const loggerContext = `${UserService.name}/${this.logout.name}`;
 
-		try {
-			const user = request.user;
-			this.logger.info(`Logged out ${user.username}!`, loggerContext, user.username, user.id);
+        try {
+            const user = request.user;
+            this.logger.info(`Logged out ${user.username}!`, loggerContext, user.username, user.id);
 
-			response.clearCookie('authToken', COOKIE_OPTIONS);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            response.clearCookie('authToken', COOKIE_OPTIONS);
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async softDelete(request: AuthCheckedRequest, response: Response): Promise<void> {
-		const loggerContext = `${UserService.name}/${this.softDelete.name}`;
+    public async softDelete(request: AuthCheckedRequest, response: Response): Promise<void> {
+        const loggerContext = `${UserService.name}/${this.softDelete.name}`;
 
-		try {
-			const user = await this.userRepository.softDeleteUser(request.user.username);
+        try {
+            const user = await this.userRepository.softDeleteUser(request.user.username);
 
-			await this.logout(request, response);
-			this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, user.username, user._id.toString());
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            await this.logout(request, response);
+            this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, user.username, user._id.toString());
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async recoverSoftDeleted({ username, recoverySecret: clientEncryptedRecoverySecret }: UserRecoveryDto, response: Response): Promise<UserGetRdo> {
-		const loggerContext = `${UserService.name}/${this.recoverSoftDeleted.name}`;
+    public async recoverSoftDeleted(
+        { username, recoverySecret: clientEncryptedRecoverySecret }: UserRecoveryDto,
+        response: Response
+    ): Promise<UserGetRdo> {
+        const loggerContext = `${UserService.name}/${this.recoverSoftDeleted.name}`;
 
-		try {
-			const user = await this.userRepository.getUserByName(username);
+        try {
+            const user = await this.userRepository.getUserByName(username);
 
-			if (!user) {
-				throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
-			}
+            if (!user) {
+                throw new HttpException('User with this username does not exist', HttpStatus.NOT_FOUND);
+            }
 
-			const recoverySecret = this.crypt.decrypt(clientEncryptedRecoverySecret);
+            const recoverySecret = this.crypt.decrypt(clientEncryptedRecoverySecret);
 
-			const isRecoverySecretValid = await this.crypt.validateUuidAndHash(recoverySecret, this.config.get('PASS_SALT_ROUNDS'));
-			if (!isRecoverySecretValid) {
-				throw new HttpException('Invalid recovery secret', HttpStatus.BAD_REQUEST);
-			}
+            const isRecoverySecretValid = await this.crypt.validateUuidAndHash(
+                recoverySecret,
+                this.config.get('PASS_SALT_ROUNDS')
+            );
+            if (!isRecoverySecretValid) {
+                throw new HttpException('Invalid recovery secret', HttpStatus.BAD_REQUEST);
+            }
 
-			const recoveredUser = await this.userRepository.softRecoveryUser(username);
+            const recoveredUser = await this.userRepository.softRecoveryUser(username);
 
-			this.setAuthCookie(username, response);
+            this.setAuthCookie(username, response);
 
-			if (user.softDeleted) {
-				this.logger.info(`RECOVERED ${username} from soft delete!`, loggerContext, username, user._id.toString());
-			} else {
-				this.logger.info(`Recovered ${username} access to account!`, loggerContext, username, user._id.toString());
-			}
+            if (user.softDeleted) {
+                this.logger.info(
+                    `RECOVERED ${username} from soft delete!`,
+                    loggerContext,
+                    username,
+                    user._id.toString()
+                );
+            } else {
+                this.logger.info(
+                    `Recovered ${username} access to account!`,
+                    loggerContext,
+                    username,
+                    user._id.toString()
+                );
+            }
 
-			return this.adapterUserGetRdo(recoveredUser);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return this.adapterUserGetRdo(recoveredUser);
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async delete(request: AuthCheckedRequest, username: string): Promise<void> {
-		const loggerContext = `${UserService.name}/${this.delete.name}`;
+    public async delete(request: AuthCheckedRequest, username: string): Promise<void> {
+        const loggerContext = `${UserService.name}/${this.delete.name}`;
 
-		try {
-			const admin = request.user;
-			if (!admin) {
-				throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
-			}
-			const user = await this.userRepository.deleteUserByName(username);
+        try {
+            const admin = request.user;
+            if (!admin) {
+                throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
+            }
+            const user = await this.userRepository.deleteUserByName(username);
 
-			if (!user) {
-				throw new HttpException('User does not exist or already deleted', HttpStatus.NOT_FOUND);
-			}
+            if (!user) {
+                throw new HttpException('User does not exist or already deleted', HttpStatus.NOT_FOUND);
+            }
 
-			await this.qrService.deleteQrImg(user.qrImg, user.username, user._id.toString());
-			this.logger.info(`COMPLETELY DELETED user ${user.username} by ${admin.username}!`, loggerContext, user.username, user._id.toString());
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            await this.qrService.deleteQrImg(user.qrImg, user.username, user._id.toString());
+            this.logger.info(
+                `COMPLETELY DELETED user ${user.username} by ${admin.username}!`,
+                loggerContext,
+                user.username,
+                user._id.toString()
+            );
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async getAuthToken(request: AuthCheckedRequest, publicKey: string): Promise<string> {
-		const loggerContext = `${UserService.name}/${this.delete.name}`;
+    public async getAuthToken(request: AuthCheckedRequest, publicKey: string): Promise<string> {
+        const loggerContext = `${UserService.name}/${this.delete.name}`;
 
-		try {
-			const user = request.user;
+        try {
+            const user = request.user;
 
-			if (!user) {
-				throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
-			}
+            if (!user) {
+                throw new HttpException('Not enough permissions, to delete user', HttpStatus.FORBIDDEN);
+            }
 
-			const { authToken } = await this.userRepository.getUserByName(user.username);
+            const { authToken } = await this.userRepository.getUserByName(user.username);
 
-			const encryptedToken = this.crypt.encrypt(authToken, publicKey);
+            const encryptedToken = this.crypt.encrypt(authToken, publicKey);
 
-			return encryptedToken;
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return encryptedToken;
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 }

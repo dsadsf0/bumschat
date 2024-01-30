@@ -5,11 +5,11 @@ import { RealTimeChatModule } from './modules/real-time-chat/real-time-chat.modu
 import { ChatMessageService } from './chat-message.service';
 
 @Module({
-	imports: [
-		RealTimeChatModule,
-		// StandardChatModule, OnlyOnlineChatModule
-	],
-	providers: [ChatMessageService, ConfigService, SnatchedLogger],
-	exports: [ChatMessageService],
+    imports: [
+        RealTimeChatModule,
+        // StandardChatModule, OnlyOnlineChatModule
+    ],
+    providers: [ChatMessageService, ConfigService, SnatchedLogger],
+    exports: [ChatMessageService],
 })
 export class ChatMessageModule {}

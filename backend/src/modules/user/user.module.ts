@@ -12,9 +12,9 @@ import { CryptoModule } from '../crypto/crypto.module';
 import { AvatarService } from 'src/core/services/avatar-service/avatar.service';
 
 @Module({
-	imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), CryptoModule],
-	controllers: [UserController],
-	providers: [UserService, UserRepository, SpeakeasyService, QrService, AvatarService, ConfigService, SnatchedLogger],
-	exports: [UserService],
+    imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), CryptoModule],
+    controllers: [UserController],
+    providers: [UserService, UserRepository, SpeakeasyService, QrService, AvatarService, ConfigService, SnatchedLogger],
+    exports: [UserService],
 })
 export class UserModule {}

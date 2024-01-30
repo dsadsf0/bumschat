@@ -7,24 +7,28 @@ import * as cookieParser from 'cookie-parser';
 import Endpoints from 'src/core/consts/endpoint';
 
 async function bootstrap(): Promise<void> {
-	const PORT = process.env.PORT;
+    const PORT = process.env.PORT;
 
-	const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule);
 
-	app.enableCors({ origin: 'http://176.212.63.19:5173', credentials: true });
-	app.use(cookieParser());
-	app.useGlobalPipes(new ValidationPipe({ transform: true }));
-	app.setGlobalPrefix(Endpoints.Global);
+    app.enableCors({ origin: 'http://176.212.63.19:5173', credentials: true });
+    app.use(cookieParser());
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    app.setGlobalPrefix(Endpoints.Global);
 
-	const swaggerConfig = new DocumentBuilder().setTitle('Bums chat Swagger').setDescription('Documentation').setVersion('1.4.8.8').build();
+    const swaggerConfig = new DocumentBuilder()
+        .setTitle('Bums chat Swagger')
+        .setDescription('Documentation')
+        .setVersion('1.4.8.8')
+        .build();
 
-	const document = SwaggerModule.createDocument(app, swaggerConfig);
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
 
-	SwaggerModule.setup(`${Endpoints.Global}/docs`, app, document);
+    SwaggerModule.setup(`${Endpoints.Global}/docs`, app, document);
 
-	await app.listen(PORT, () => {
-		app.get(SnatchedLogger).debug(`SERVER STARTED ON PORT ${PORT}`, 'SERVER');
-	});
+    await app.listen(PORT, () => {
+        app.get(SnatchedLogger).debug(`SERVER STARTED ON PORT ${PORT}`, 'SERVER');
+    });
 }
 
 bootstrap();

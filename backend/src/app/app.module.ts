@@ -18,39 +18,39 @@ import { AvatarService } from 'src/core/services/avatar-service/avatar.service';
 
 // TODO: решить конфликты
 @Module({
-	imports: [
-		ConfigModule.forRoot({
-			envFilePath: `.${process.env.NODE_ENV}.env`,
-			validationSchema: Joi.object<AppConfigSchema, true>({
-				PORT: Joi.number(),
-				SOCKET_PORT: Joi.number(),
-				MONGO_CONNECT: Joi.string(),
-				MONGO_NAME: Joi.string(),
-				CLIENT_URL: Joi.string(),
-				PASS_SALT_ROUNDS: Joi.number(),
-				AUTH_TOKEN_SALT_ROUNDS: Joi.number(),
-				UUID_NAMESPACE: Joi.string(),
-				GLOBAL_PUBLIC_KEY: Joi.string(),
-				GLOBAL_PRIVATE_KEY: Joi.string(),
-			}),
-		}),
-		MongooseModule.forRootAsync({
-			imports: [ConfigModule],
-			useFactory: (configService: ConfigService<AppConfigSchema>) => ({
-				uri: configService.get('MONGO_CONNECT'),
-				dbName: configService.get('MONGO_NAME'),
-			}),
-			inject: [ConfigService],
-		}),
-		CryptoModule,
-		UserModule,
-		SocketModule,
-		ChatRoleModule,
-		ChatModule,
-		RealTimeChatModule,
-		ChatMessageModule,
-	],
-	controllers: [AppController],
-	providers: [AppService, QrService, AvatarService, ConfigService, SnatchedLogger],
+    imports: [
+        ConfigModule.forRoot({
+            envFilePath: `.${process.env.NODE_ENV}.env`,
+            validationSchema: Joi.object<AppConfigSchema, true>({
+                PORT: Joi.number(),
+                SOCKET_PORT: Joi.number(),
+                MONGO_CONNECT: Joi.string(),
+                MONGO_NAME: Joi.string(),
+                CLIENT_URL: Joi.string(),
+                PASS_SALT_ROUNDS: Joi.number(),
+                AUTH_TOKEN_SALT_ROUNDS: Joi.number(),
+                UUID_NAMESPACE: Joi.string(),
+                GLOBAL_PUBLIC_KEY: Joi.string(),
+                GLOBAL_PRIVATE_KEY: Joi.string(),
+            }),
+        }),
+        MongooseModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService<AppConfigSchema>) => ({
+                uri: configService.get('MONGO_CONNECT'),
+                dbName: configService.get('MONGO_NAME'),
+            }),
+            inject: [ConfigService],
+        }),
+        CryptoModule,
+        UserModule,
+        SocketModule,
+        ChatRoleModule,
+        ChatModule,
+        RealTimeChatModule,
+        ChatMessageModule,
+    ],
+    controllers: [AppController],
+    providers: [AppService, QrService, AvatarService, ConfigService, SnatchedLogger],
 })
 export class AppModule {}

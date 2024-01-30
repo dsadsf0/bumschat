@@ -11,85 +11,85 @@ export const QR_FOLDER_NAME = 'QR-codes';
 
 @Injectable()
 export class QrService {
-	constructor(private readonly logger: SnatchedLogger) {}
+    constructor(private readonly logger: SnatchedLogger) {}
 
-	public treatQRDataUrl(qrDataURL: string): string {
-		const loggerContext = `${QrService.name}/${this.treatQRDataUrl.name}`;
-		try {
-			return qrDataURL.replace(/^data:image\/png+;base64,/, '').replace(/ /g, '+');
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+    public treatQRDataUrl(qrDataURL: string): string {
+        const loggerContext = `${QrService.name}/${this.treatQRDataUrl.name}`;
+        try {
+            return qrDataURL.replace(/^data:image\/png+;base64,/, '').replace(/ /g, '+');
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async otpAuthUrlToQrUrl(secretUrl: string): Promise<string> {
-		const loggerContext = `${QrService.name}/${this.otpAuthUrlToQrUrl.name}`;
+    public async otpAuthUrlToQrUrl(secretUrl: string): Promise<string> {
+        const loggerContext = `${QrService.name}/${this.otpAuthUrlToQrUrl.name}`;
 
-		try {
-			return await qrCode.toDataURL(secretUrl);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+        try {
+            return await qrCode.toDataURL(secretUrl);
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async otpAuthUrlToQrData(secretUrl: string): Promise<string> {
-		const loggerContext = `${QrService.name}/${this.otpAuthUrlToQrData.name}`;
+    public async otpAuthUrlToQrData(secretUrl: string): Promise<string> {
+        const loggerContext = `${QrService.name}/${this.otpAuthUrlToQrData.name}`;
 
-		try {
-			const qrDataUrl = await this.otpAuthUrlToQrUrl(secretUrl);
-			return this.treatQRDataUrl(qrDataUrl);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+        try {
+            const qrDataUrl = await this.otpAuthUrlToQrUrl(secretUrl);
+            return this.treatQRDataUrl(qrDataUrl);
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public getFileName(): string {
-		return `${utcDayjs().unix}-${uuid.v4()}.png`;
-	}
+    public getFileName(): string {
+        return `${utcDayjs().unix}-${uuid.v4()}.png`;
+    }
 
-	public getLogUsername(username?: string): string {
-		return username ? ` to ${username}` : '';
-	}
+    public getLogUsername(username?: string): string {
+        return username ? ` to ${username}` : '';
+    }
 
-	public async createQrImg(treatedQRData: string, username?: string, userId?: string): Promise<string> {
-		const loggerContext = `${QrService.name}/${this.createQrImg.name}`;
+    public async createQrImg(treatedQRData: string, username?: string, userId?: string): Promise<string> {
+        const loggerContext = `${QrService.name}/${this.createQrImg.name}`;
 
-		try {
-			const fileName = this.getFileName();
+        try {
+            const fileName = this.getFileName();
 
-			const filePath = path.resolve(QR_FOLDER_NAME, fileName);
+            const filePath = path.resolve(QR_FOLDER_NAME, fileName);
 
-			await fs.ensureFile(filePath);
-			await fs.writeFile(filePath, treatedQRData, { encoding: 'base64' });
+            await fs.ensureFile(filePath);
+            await fs.writeFile(filePath, treatedQRData, { encoding: 'base64' });
 
-			const logUsername = this.getLogUsername(username);
+            const logUsername = this.getLogUsername(username);
 
-			this.logger.info(`Qr image ${fileName}${logUsername} has been created.`, loggerContext, username, userId);
+            this.logger.info(`Qr image ${fileName}${logUsername} has been created.`, loggerContext, username, userId);
 
-			return fileName;
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            return fileName;
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 
-	public async deleteQrImg(fileName: string, username?: string, userId?: string): Promise<void> {
-		const loggerContext = `${QrService.name}/${this.deleteQrImg.name}`;
+    public async deleteQrImg(fileName: string, username?: string, userId?: string): Promise<void> {
+        const loggerContext = `${QrService.name}/${this.deleteQrImg.name}`;
 
-		try {
-			const filePath = path.resolve(QR_FOLDER_NAME, fileName);
+        try {
+            const filePath = path.resolve(QR_FOLDER_NAME, fileName);
 
-			await fs.unlink(filePath);
+            await fs.unlink(filePath);
 
-			const logUsername = this.getLogUsername(username);
+            const logUsername = this.getLogUsername(username);
 
-			this.logger.info(`Qr image ${fileName}${logUsername} has been deleted.`, loggerContext, username, userId);
-		} catch (error) {
-			this.logger.error(error, loggerContext);
-			handleError(error);
-		}
-	}
+            this.logger.info(`Qr image ${fileName}${logUsername} has been deleted.`, loggerContext, username, userId);
+        } catch (error) {
+            this.logger.error(error, loggerContext);
+            handleError(error);
+        }
+    }
 }

@@ -7,8 +7,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Chat, ChatSchema } from './chat.model';
 
 @Module({
-	imports: [MongooseModule.forFeature([{ name: Chat.name, schema: ChatSchema }]), ChatRoleModule],
-	providers: [ChatService, ConfigService, SnatchedLogger],
-	exports: [ChatService],
+    imports: [MongooseModule.forFeature([{ name: Chat.name, schema: ChatSchema }]), ChatRoleModule],
+    providers: [ChatService, ConfigService, SnatchedLogger],
+    exports: [ChatService],
 })
 export class ChatModule {}

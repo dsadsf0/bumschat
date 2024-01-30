@@ -1,4 +1,4 @@
 export type RequestAuthTokenRdo = {
-	token: string;
-	publicKey: string;
+    token: string;
+    publicKey: string;
 };

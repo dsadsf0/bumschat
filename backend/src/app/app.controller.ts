@@ -5,11 +5,11 @@ import Endpoints from 'src/core/consts/endpoint';
 
 @Controller()
 export class AppController {
-	constructor(private readonly appService: AppService) {}
+    constructor(private readonly appService: AppService) {}
 
-	@ApiTags('Ping')
-	@Get(Endpoints.Ping)
-	ping(): string {
-		return this.appService.ping();
-	}
+    @ApiTags('Ping')
+    @Get(Endpoints.Ping)
+    ping(): string {
+        return this.appService.ping();
+    }
 }

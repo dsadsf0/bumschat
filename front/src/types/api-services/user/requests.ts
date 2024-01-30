@@ -1,18 +1,18 @@
 export type LoginRequest = {
-	username: string;
-	verificationCode: string;
+    username: string;
+    verificationCode: string;
 };
 
 export type SignupRequest = {
-	username: string;
-	publicKey: string;
+    username: string;
+    publicKey: string;
 };
 
 export type UsernameCheckRequest = {
-	username: string;
+    username: string;
 };
 
 export type RecoveryRequest = {
-	username: string;
-	recoverySecret: string;
+    username: string;
+    recoverySecret: string;
 };

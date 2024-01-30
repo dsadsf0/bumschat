@@ -7,20 +7,20 @@ import { useAppSelector } from '@/hooks/useStore';
 import { getUser } from '@/store/user/UserSelector';
 
 const Welcome: React.FC = () => {
-	const user = useAppSelector(getUser);
+    const user = useAppSelector(getUser);
 
-	if (user) {
-		return <Navigate to={MainRoutes.Home} replace={true} />;
-	}
+    if (user) {
+        return <Navigate to={MainRoutes.Home} replace={true} />;
+    }
 
-	return (
-		<div className={classNames(cl.welcome)}>
-			<h1>Welcome to BUMS Chat</h1>
-			<Link to={MainRoutes.Login}>Login</Link>
-			&nbsp;&nbsp;<span>/</span>&nbsp;
-			<Link to={MainRoutes.Signup}>Signup</Link>
-		</div>
-	);
+    return (
+        <div className={classNames(cl.welcome)}>
+            <h1>Welcome to BUMS Chat</h1>
+            <Link to={MainRoutes.Login}>Login</Link>
+            &nbsp;&nbsp;<span>/</span>&nbsp;
+            <Link to={MainRoutes.Signup}>Signup</Link>
+        </div>
+    );
 };
 
 export default Welcome;
