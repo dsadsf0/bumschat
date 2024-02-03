@@ -13,7 +13,7 @@ export const QR_FOLDER_NAME = 'QR-codes';
 export class QrService {
     constructor(private readonly logger: SnatchedLogger) {}
 
-    public treatQRDataUrl(qrDataURL: string): string {
+    private treatQRDataUrl(qrDataURL: string): string {
         const loggerContext = `${QrService.name}/${this.treatQRDataUrl.name}`;
         try {
             return qrDataURL.replace(/^data:image\/png+;base64,/, '').replace(/ /g, '+');
@@ -23,7 +23,7 @@ export class QrService {
         }
     }
 
-    public async otpAuthUrlToQrUrl(secretUrl: string): Promise<string> {
+    private async otpAuthUrlToQrUrl(secretUrl: string): Promise<string> {
         const loggerContext = `${QrService.name}/${this.otpAuthUrlToQrUrl.name}`;
 
         try {
@@ -46,11 +46,11 @@ export class QrService {
         }
     }
 
-    public getFileName(): string {
+    private getFileName(): string {
         return `${utcDayjs().unix}-${uuid.v4()}.png`;
     }
 
-    public getLogUsername(username?: string): string {
+    private getLogUsername(username?: string): string {
         return username ? ` to ${username}` : '';
     }
 

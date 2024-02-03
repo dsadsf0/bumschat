@@ -25,7 +25,6 @@ module.exports = {
         quotes: [2, 'single', { allowTemplateLiterals: true, avoidEscape: true }],
 		semi: ['error', 'always'],
         'max-len': [1, { code: 120, ignoreStrings: true, ignoreUrls: true, ignoreTemplateLiterals: true, ignoreRegExpLiterals: true }],
-		'operator-linebreak': ['error', 'before'],
 		'dot-location': ['error', 'property'],
         'lines-between-class-members': ['error', 'always'],
         'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 0 }],

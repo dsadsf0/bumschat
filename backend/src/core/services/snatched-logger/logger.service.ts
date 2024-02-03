@@ -46,9 +46,9 @@ export class SnatchedLogger extends ConsoleLogger {
             }
         } catch (error) {
             if (
-                error?.message
-                && typeof error.message === 'string'
-                && error.message.includes('no such file or directory')
+                error?.message &&
+                typeof error.message === 'string' &&
+                error.message.includes('no such file or directory')
             ) {
                 super.warn(error + '. But has created');
                 fs.ensureFileSync(filePath);
@@ -77,11 +77,11 @@ export class SnatchedLogger extends ConsoleLogger {
         }
     }
 
-    public treatTextMessage(message: unknown): string {
+    private treatTextMessage(message: unknown): string {
         return typeof message === 'string' ? message : JSON.stringify(message);
     }
 
-    public treatLogMessage(message: unknown): string {
+    private treatLogMessage(message: unknown): string {
         return JSON.stringify(message);
     }
 

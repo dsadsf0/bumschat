@@ -18,11 +18,11 @@ export type AvatarToType = (typeof AvatarTo)[keyof typeof AvatarTo];
 export class AvatarService {
     constructor(private readonly logger: SnatchedLogger) {}
 
-    public getFileName(): string {
+    private getFileName(): string {
         return `${utcDayjs().unix}-${uuid.v4()}.png`;
     }
 
-    public getFolderName(type: AvatarToType): string {
+    private getFolderName(type: AvatarToType): string {
         return `${AvatarTo[type]}-avatars`;
     }
 
