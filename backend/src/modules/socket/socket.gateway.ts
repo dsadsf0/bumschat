@@ -118,7 +118,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     @SubscribeMessage('chat-message')
     public async message(@MessageBody() ctx: MessagePayload, @ConnectedSocket() client: SocketClient): Promise<void> {
-        const loggerContext = `${SocketGateway.name}/${this.handleDisconnect.name}`;
+        const loggerContext = `${SocketGateway.name}/${this.message.name}`;
 
         try {
             const msgContext = this.adapterToMessageContext(ctx, client.data.user);

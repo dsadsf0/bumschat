@@ -78,11 +78,11 @@ export class SnatchedLogger extends ConsoleLogger {
     }
 
     private treatTextMessage(message: unknown): string {
-        return typeof message === 'string' ? message : JSON.stringify(message);
+        return typeof message === 'string' ? message : JSON.stringify(message, null, 4);
     }
 
     private treatLogMessage(message: unknown): string {
-        return JSON.stringify(message);
+        return JSON.stringify(message, null, 4);
     }
 
     private highlightUsername(message: string, username: string, type: 'error' | 'warn' | 'info' | 'debug'): string {

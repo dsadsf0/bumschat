@@ -47,7 +47,7 @@ export class QrService {
     }
 
     private getFileName(): string {
-        return `${utcDayjs().unix}-${uuid.v4()}.png`;
+        return `${utcDayjs().unix()}-${uuid.v4()}.png`;
     }
 
     private getLogUsername(username?: string): string {

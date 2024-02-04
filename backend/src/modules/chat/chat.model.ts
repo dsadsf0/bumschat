@@ -4,7 +4,7 @@ import utcDayjs from 'src/core/utils/utcDayjs';
 import { ChatType } from './types/chat.type';
 import { Models } from 'src/core/consts/models';
 import { Types } from 'mongoose';
-import { ChatUserRights } from './types/chat-user-rights.type';
+import { ChatUserRights, ChatUserRightsSchema } from './types/chat-user-rights.type';
 
 export type ChatDocument = DocumentModel<Chat>;
 
@@ -20,7 +20,7 @@ export class Chat {
     @Prop({ type: String, required: true })
     type: ChatType;
 
-    @Prop({ required: true, type: [ChatUserRights] })
+    @Prop({ required: true, type: [ChatUserRightsSchema] })
     users: ChatUserRights[];
 
     @Prop({ required: true, type: Types.ObjectId, ref: Models.User })

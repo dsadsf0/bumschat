@@ -8,8 +8,8 @@ import axios from 'axios';
 import { SnatchedLogger } from '../snatched-logger/logger.service';
 
 export const AvatarTo = {
-    User: 'user',
-    Chat: 'chat',
+    User: 'users',
+    Chat: 'chats',
 } as const;
 
 export type AvatarToType = (typeof AvatarTo)[keyof typeof AvatarTo];
@@ -19,11 +19,11 @@ export class AvatarService {
     constructor(private readonly logger: SnatchedLogger) {}
 
     private getFileName(): string {
-        return `${utcDayjs().unix}-${uuid.v4()}.png`;
+        return `${utcDayjs().unix()}-${uuid.v4()}.png`;
     }
 
     private getFolderName(type: AvatarToType): string {
-        return `${AvatarTo[type]}-avatars`;
+        return `${type}-avatars`;
     }
 
     public async createAvatar(type: AvatarToType): Promise<string> {
@@ -50,7 +50,7 @@ export class AvatarService {
     }
 
     public async editAvatar(type: AvatarToType, fileName: string, avatar: string): Promise<void> {
-        const loggerContext = `${AvatarService.name}/${this.createAvatar.name}`;
+        const loggerContext = `${AvatarService.name}/${this.editAvatar.name}`;
 
         try {
             const filePath = path.resolve(this.getFolderName(type), fileName);
@@ -64,7 +64,7 @@ export class AvatarService {
     }
 
     public async deleteAvatar(type: AvatarToType, fileName: string): Promise<void> {
-        const loggerContext = `${AvatarService.name}/${this.createAvatar.name}`;
+        const loggerContext = `${AvatarService.name}/${this.deleteAvatar.name}`;
 
         try {
             const filePath = path.resolve(this.getFolderName(type), fileName);
