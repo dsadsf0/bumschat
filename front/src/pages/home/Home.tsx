@@ -12,8 +12,30 @@ const Home: React.FC = () => {
     const [message, setMessage] = useState<string>('');
     const [msgs, setMsgs] = useState<Message[]>([]);
 
+    const sendMessage = (): void => {
+        // MOCK chat
+
+        const sentMessage = {
+            chat: {
+                id: 'mock-id',
+                name: 'mock-name',
+                type: 'RTChat' as const,
+            },
+            message: {
+                text: cryptService.encrypt(message),
+            },
+        };
+
+        console.log('message', message);
+        console.log('sentMessage', sentMessage);
+
+        socket.emit('chat-message', sentMessage);
+        setMessage('');
+    };
+
     useEffect(() => {
         socket.on('chat-message', (ctx) => {
+            console.log('got new message', ctx);
             const text = ctx.message.text;
             ctx.message.text = text ? cryptService.decrypt(text) : '';
             setMsgs([...msgs, ctx]);
@@ -23,21 +45,6 @@ const Home: React.FC = () => {
     if (!user) {
         return <Navigate to={MainRoutes.Welcome} />;
     }
-
-    const sendMessage = (): void => {
-        // MOCK chat
-        socket.emit('chat-message', {
-            chat: {
-                id: 'mock-id',
-                name: 'mock-name',
-                type: 'RTChat',
-            },
-            message: {
-                text: message,
-            },
-        });
-        setMessage('');
-    };
 
     return (
         <div>
