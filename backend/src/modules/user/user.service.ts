@@ -118,7 +118,10 @@ export class UserService {
                 chats: [],
             });
 
-            this.logger.info(`Registered new user ${username}!`, loggerContext, username, newUser._id.toString());
+            this.logger.info(`Registered new user ${username}!`, loggerContext, {
+                logEntityId: newUser._id.toString(),
+                tagInMessage: username,
+            });
 
             response.cookie('authToken', authToken, COOKIE_OPTIONS);
 
@@ -170,7 +173,10 @@ export class UserService {
                 throw new HttpException('Does not correct 2FA code', HttpStatus.UNAUTHORIZED);
             }
 
-            this.logger.info(`${username} logged in!`, loggerContext, username, user._id.toString());
+            this.logger.info(`${username} logged in!`, loggerContext, {
+                logEntityId: user._id.toString(),
+                tagInMessage: username,
+            });
 
             this.setAuthCookie(username, response);
 
@@ -186,7 +192,10 @@ export class UserService {
 
         try {
             const user = request.user;
-            this.logger.info(`Logged out ${user.username}!`, loggerContext, user.username, user.id);
+            this.logger.info(`Logged out ${user.username}!`, loggerContext, {
+                logEntityId: user.id.toString(),
+                tagInMessage: user.username,
+            });
 
             response.clearCookie('authToken', COOKIE_OPTIONS);
         } catch (error) {
@@ -202,7 +211,10 @@ export class UserService {
             const user = await this.userRepository.softDeleteUser(request.user.username);
 
             await this.logout(request, response);
-            this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, user.username, user._id.toString());
+            this.logger.info(`Soft DELETED ${user.username}!`, loggerContext, {
+                logEntityId: user._id.toString(),
+                tagInMessage: user.username,
+            });
         } catch (error) {
             this.logger.error(error, loggerContext);
             handleError(error);
@@ -237,19 +249,15 @@ export class UserService {
             this.setAuthCookie(username, response);
 
             if (user.softDeleted) {
-                this.logger.info(
-                    `RECOVERED ${username} from soft delete!`,
-                    loggerContext,
-                    username,
-                    user._id.toString()
-                );
+                this.logger.info(`RECOVERED ${username} from soft delete!`, loggerContext, {
+                    logEntityId: user._id.toString(),
+                    tagInMessage: user.username,
+                });
             } else {
-                this.logger.info(
-                    `Recovered ${username} access to account!`,
-                    loggerContext,
-                    username,
-                    user._id.toString()
-                );
+                this.logger.info(`Recovered ${username} access to account!`, loggerContext, {
+                    logEntityId: user._id.toString(),
+                    tagInMessage: user.username,
+                });
             }
 
             return this.adapterUserGetRdo(recoveredUser);
@@ -274,12 +282,10 @@ export class UserService {
             }
 
             await this.qrService.deleteQrImg(user.qrImg, user.username, user._id.toString());
-            this.logger.info(
-                `COMPLETELY DELETED user ${user.username} by ${admin.username}!`,
-                loggerContext,
-                user.username,
-                user._id.toString()
-            );
+            this.logger.info(`COMPLETELY DELETED user ${user.username} by ${admin.username}!`, loggerContext, {
+                logEntityId: user._id.toString(),
+                tagInMessage: user.username,
+            });
         } catch (error) {
             this.logger.error(error, loggerContext);
             handleError(error);

@@ -2,9 +2,10 @@ import { Injectable, ConsoleLogger, LogLevel } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import utcDayjs from 'src/core/utils/utcDayjs';
 
-const MILLISECONDS_IN_SECOND = 60000;
-
-const UNAVAILABLE_PATH_SYMBOLS_REGEX = /['"\/|\\:*<>?]/g;
+type Options = {
+    tagInMessage?: string;
+    logEntityId?: string;
+};
 
 @Injectable()
 export class SnatchedLogger extends ConsoleLogger {
@@ -18,16 +19,22 @@ export class SnatchedLogger extends ConsoleLogger {
 
     private readonly logLevel: LogLevel = 'log';
 
+    private readonly consoleDateFormat = 'YYYY-MM-DD HH:mm:ss:SSS';
+
+    private readonly unavailablePathSymbolsRegex = /['"\/|\\:*<>?]/g;
+
+    private readonly indentSpaces = 4;
+
     constructor() {
         super();
     }
 
-    private getLogFilePath(username?: string): string {
-        const usernamePath = username ? `/${username}` : '';
-        return `${this.logsDirectory}${usernamePath}/${this.logFileName}.${this.logFileExtension}`;
+    private getLogFilePath(logEntityId?: string): string {
+        const logEntityIdPath = logEntityId ? `/${logEntityId}` : '';
+        return `${this.logsDirectory}${logEntityIdPath}/${this.logFileName}.${this.logFileExtension}`;
     }
 
-    private async checkLogFileSize(filePath: string): Promise<void> {
+    private async ensureLogFile(filePath: string): Promise<void> {
         try {
             const stats = fs.statSync(filePath);
 
@@ -58,47 +65,48 @@ export class SnatchedLogger extends ConsoleLogger {
         }
     }
 
-    private async logToFile(message: string, context?: string, userId?: string): Promise<void> {
+    private async logToFile(message: string, context?: string, logEntityId?: string): Promise<void> {
         try {
-            const treatedUserId = userId?.replaceAll(UNAVAILABLE_PATH_SYMBOLS_REGEX, '');
-            const logFilePath = this.getLogFilePath(treatedUserId);
+            const treatedLogEntityId = logEntityId?.replaceAll(this.unavailablePathSymbolsRegex, '');
+            const logFilePath = this.getLogFilePath(treatedLogEntityId);
 
-            await this.checkLogFileSize(logFilePath);
-
-            const timezoneOffset = new Date().getTimezoneOffset() * MILLISECONDS_IN_SECOND;
+            await this.ensureLogFile(logFilePath);
 
             fs.ensureFileSync(logFilePath);
-            fs.appendFileSync(
-                logFilePath,
-                `[${new Date(Date.now() - timezoneOffset).toISOString().slice(0, -1)}] [${context}] ${message}\n`
-            );
+            fs.appendFileSync(logFilePath, `[${utcDayjs().format(this.consoleDateFormat)}] [${context}] ${message}\n`);
         } catch (error) {
             super.error(error);
         }
     }
 
+    private stringify(message: unknown): string {
+        return JSON.stringify(message, null, this.indentSpaces);
+    }
+
     private treatTextMessage(message: unknown): string {
-        return typeof message === 'string' ? message : JSON.stringify(message, null, 4);
+        return typeof message === 'string' ? message : this.stringify(message);
     }
 
     private treatLogMessage(message: unknown): string {
-        return JSON.stringify(message, null, 4);
+        return this.stringify(message);
     }
 
-    private highlightUsername(message: string, username: string, type: 'error' | 'warn' | 'info' | 'debug'): string {
+    private highlightTag(message: string, tagInMessage: string, type: Exclude<LogLevel, 'verbose'>): string {
         switch (type) {
             case 'debug':
-                return message.replaceAll(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[35m`);
-            case 'info':
-                return message.replaceAll(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[32m`);
+                return message.replaceAll(tagInMessage, `\x1b[1m\x1b[34m${tagInMessage}\x1b[0m\x1b[35m`);
+            case 'log':
+                return message.replaceAll(tagInMessage, `\x1b[1m\x1b[34m${tagInMessage}\x1b[0m\x1b[32m`);
             case 'warn':
-                return message.replaceAll(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[33m`);
+                return message.replaceAll(tagInMessage, `\x1b[1m\x1b[34m${tagInMessage}\x1b[0m\x1b[33m`);
             case 'error':
-                return message.replaceAll(username, `\x1b[1m\x1b[34m${username}\x1b[0m\x1b[31m`);
+                return message.replaceAll(tagInMessage, `\x1b[1m\x1b[34m${tagInMessage}\x1b[0m\x1b[31m`);
+            default:
+                return message;
         }
     }
 
-    public log(context: string, ...messages: unknown[]): void {
+    public trace(context: string, ...messages: unknown[]): void {
         try {
             if (!messages.length) {
                 super.printMessages([''], `\x1b[1m\x1b[37m${context}\x1b[0m\x1b[33m`, this.logLevel);
@@ -113,53 +121,54 @@ export class SnatchedLogger extends ConsoleLogger {
         }
     }
 
-    public debug(message: unknown, context = '', username?: string, userId?: string): void {
+    public debug(message: unknown, context = '', { tagInMessage, logEntityId }: Options = {}): void {
         try {
             const textMessage = this.treatTextMessage(message);
-            const treatedMessage = username ? this.highlightUsername(textMessage, username, 'debug') : textMessage;
+            const treatedMessage = tagInMessage ? this.highlightTag(textMessage, tagInMessage, 'debug') : textMessage;
 
             super.debug(treatedMessage, context);
 
-            this.logToFile(this.treatLogMessage(message), context, userId);
+            this.logToFile(`DEBUG: ${this.treatLogMessage(message)}`, context, logEntityId);
         } catch (error) {
             super.error(error);
         }
     }
 
-    public info(message: unknown, context = '', username?: string, userId?: string): void {
+    public info(message: unknown, context = '', { tagInMessage, logEntityId }: Options = {}): void {
         try {
             const textMessage = this.treatTextMessage(message);
-            const treatedMessage = username ? this.highlightUsername(textMessage, username, 'info') : textMessage;
+            const treatedMessage = tagInMessage ? this.highlightTag(textMessage, tagInMessage, 'log') : textMessage;
 
             super.log(treatedMessage, context);
 
-            this.logToFile(this.treatLogMessage(message), context, userId);
+            this.logToFile(`LOG: ${this.treatLogMessage(message)}`, context, logEntityId);
         } catch (error) {
             super.error(error);
         }
     }
 
-    public warn(message: unknown, context = '', username?: string, userId?: string): void {
+    public warn(message: unknown, context = '', { tagInMessage, logEntityId }: Options = {}): void {
         try {
             const textMessage = this.treatTextMessage(message);
-            const treatedMessage = username ? this.highlightUsername(textMessage, username, 'warn') : textMessage;
+            const treatedMessage = tagInMessage ? this.highlightTag(textMessage, tagInMessage, 'warn') : textMessage;
 
             super.warn(treatedMessage, context);
 
-            this.logToFile(`WARNING: ${this.treatLogMessage(message)}`, context, userId);
+            this.logToFile(`WARNING: ${this.treatLogMessage(message)}`, context, logEntityId);
         } catch (error) {
             super.error(error);
         }
     }
 
-    public error(message: unknown, context = '', username?: string, userId?: string): void {
+    public error(message: unknown, context = '', options: string | Options = {}): void {
         try {
+            const { tagInMessage, logEntityId } = typeof options === 'string' ? ({} as Options) : options;
             const textMessage = this.treatTextMessage(message);
-            const treatedMessage = username ? this.highlightUsername(textMessage, username, 'error') : textMessage;
+            const treatedMessage = tagInMessage ? this.highlightTag(textMessage, tagInMessage, 'error') : textMessage;
 
             super.error(treatedMessage, context);
 
-            this.logToFile(`ERROR: ${this.treatLogMessage(message)}`, context, userId);
+            this.logToFile(`ERROR: ${this.treatLogMessage(message)}`, context, logEntityId);
         } catch (error) {
             super.error(error);
         }

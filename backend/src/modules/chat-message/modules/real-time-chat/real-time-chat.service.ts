@@ -21,7 +21,7 @@ export class RealTimeChatService implements AbstractChatMessageService {
                 edited: null,
             };
 
-            this.logger.log(loggerContext, 'Treated message', treatedMessage);
+            this.logger.trace(loggerContext, 'Treated message', treatedMessage);
 
             return treatedMessage;
         } catch (error) {

@@ -67,7 +67,10 @@ export class QrService {
 
             const logUsername = this.getLogUsername(username);
 
-            this.logger.info(`Qr image ${fileName}${logUsername} has been created.`, loggerContext, username, userId);
+            this.logger.info(`Qr image ${fileName}${logUsername} has been created.`, loggerContext, {
+                logEntityId: userId,
+                tagInMessage: username,
+            });
 
             return fileName;
         } catch (error) {
@@ -86,7 +89,9 @@ export class QrService {
 
             const logUsername = this.getLogUsername(username);
 
-            this.logger.info(`Qr image ${fileName}${logUsername} has been deleted.`, loggerContext, username, userId);
+            this.logger.info(`Qr image ${fileName}${logUsername} has been deleted.`, loggerContext, {
+                logEntityId: userId,
+            });
         } catch (error) {
             this.logger.error(error, loggerContext);
             handleError(error);

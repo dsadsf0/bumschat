@@ -75,12 +75,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
                 throw new WsException(`Client with id: ${client.id} disconnected! Unauthorized.`);
             }
 
-            this.logger.info(
-                `New connection ${user.username} with socket id: ${client.id}!`,
-                loggerContext,
-                user.username,
-                user.id
-            );
+            this.logger.info(`New connection ${user.username} with socket id: ${client.id}!`, loggerContext, {
+                logEntityId: user.id,
+                tagInMessage: user.username,
+            });
 
             const userChats = ['mock-id']; // MOCK
             // const userChats = client.data.user.chats;
@@ -103,12 +101,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
             const { user } = client.data;
 
             if (user) {
-                this.logger.info(
-                    `Disconnected ${user.username} with socket id: ${client.id}!`,
-                    loggerContext,
-                    user.username,
-                    user.id
-                );
+                this.logger.info(`Disconnected ${user.username} with socket id: ${client.id}!`, loggerContext, {
+                    logEntityId: user.id,
+                    tagInMessage: user.username,
+                });
             }
         } catch (error) {
             this.logger.error(error, loggerContext);
