@@ -15,31 +15,43 @@ const Home: React.FC = () => {
     const sendMessage = (): void => {
         // MOCK chat
 
-        const sentMessage = {
-            chat: {
-                id: 'mock-id',
-                name: 'mock-name',
-                type: 'RTChat' as const,
-            },
-            message: {
-                text: cryptService.encrypt(message),
-            },
-        };
+        if (message !== '') {
+            const newMessage = {
+                chat: {
+                    id: 'mock-id',
+                    name: 'mock-name',
+                    type: 'RTChat' as const,
+                },
+                message: {
+                    text: cryptService.encrypt(message),
+                },
+            };
 
-        console.log('message', message);
-        console.log('sentMessage', sentMessage);
+            // https://runebook.dev/ru/docs/socketio/emitting-events
+            socket.emit('chat-message', newMessage);
+            setMessage('');
+        }
+    };
 
-        socket.emit('chat-message', sentMessage);
-        setMessage('');
+    const sendMessageOnKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+        if (e.code === 'Enter') {
+            sendMessage();
+        }
     };
 
     useEffect(() => {
-        socket.on('chat-message', (ctx) => {
+        const onChatMessage = (ctx: Message): void => {
             console.log('got new message', ctx);
             const text = ctx.message.text;
             ctx.message.text = text ? cryptService.decrypt(text) : '';
-            setMsgs([...msgs, ctx]);
-        });
+            setMsgs((prev) => [...prev, ctx]);
+        };
+
+        socket.on('chat-message', onChatMessage);
+
+        return () => {
+            socket.off('chat-message', onChatMessage);
+        };
     }, []);
 
     if (!user) {
@@ -52,7 +64,7 @@ const Home: React.FC = () => {
             <div>
                 {msgs.map((ctx) => (
                     <div key={ctx.id}>
-                        <p>{ctx.from.username}</p>
+                        <h2>{ctx.from.username}</h2>
                         <p>{ctx.message.text}</p>
                     </div>
                 ))}
@@ -63,6 +75,7 @@ const Home: React.FC = () => {
                     value={message}
                     onChange={(e): void => setMessage(e.target.value)}
                     placeholder="Enter your message"
+                    onKeyDown={sendMessageOnKey}
                 />
                 <button onClick={sendMessage}>Send</button>
             </div>

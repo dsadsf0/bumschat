@@ -80,8 +80,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
                 tagInMessage: user.username,
             });
 
-            const userChats = ['mock-id']; // MOCK
-            // const userChats = client.data.user.chats;
+            const userChats = client.data.user.chats;
 
             if (!userChats.length) {
                 return;
@@ -124,7 +123,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
             for (const chatUser of groupUsers) {
                 const userMessageRdo = this.socketService.encryptMessageRdo(treatedMessage, chatUser.data.publicKey);
-                chatUser.emit('chat-message', userMessageRdo);
+                this.server.to(chatUser.id).emit('chat-message', userMessageRdo);
             }
         } catch (error) {
             this.logger.error(error, loggerContext);

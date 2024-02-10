@@ -50,6 +50,7 @@ export class SocketService {
 
         client.data.user = user;
         client.data.publicKey = publicKey;
+        client.data.user.chats = ['mock-id'];
     }
 
     private decryptMessageContext(ctx: MessageContext): MessageContext {

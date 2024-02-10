@@ -31,7 +31,7 @@ lerna-debug.log*
 .vscode
 
 QR-codes
-user-avatars
-chat-avatars
+users-avatars
+chats-avatars
 
 .*.env

@@ -11,7 +11,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { UserService } from '@/api/services/UserService';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { getUser } from '@/store/user/UserSelector';
-import { initSocket } from '@/utils/socket/init-socket';
+import { initUserSocketConnection } from '@/utils/socket/init-socket';
 import cryptService from '@/utils/crypt/crypt-service';
 
 const App: React.FC = () => {
@@ -26,28 +26,13 @@ const App: React.FC = () => {
         setIsAppInit(true);
     };
 
-    const getAndTreatToken = async (username: string): Promise<{ token: string; publicKey: string }> => {
-        const clientPublicKey = cryptService.getPublicKey();
-        const { token: userToken, publicKey: serverPublicKey } = await UserService.getToken(clientPublicKey);
-        const token = cryptService.decrypt(userToken);
-        return {
-            token: cryptService.encryptByKey(`${token}_${username}`, serverPublicKey),
-            publicKey: clientPublicKey,
-        };
-    };
-
-    const connectToSocket = async (username: string): Promise<void> => {
-        const { token, publicKey } = await getAndTreatToken(username);
-        await initSocket(token, publicKey);
-    };
-
     useEffect(() => {
         initApp();
     }, []);
 
     useEffect(() => {
         if (user) {
-            connectToSocket(user.username);
+            initUserSocketConnection(user.username);
         }
     }, [user]);
 
