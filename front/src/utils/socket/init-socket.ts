@@ -56,6 +56,8 @@ const connectToSocket = (encryptedToken: string, publicKey: string): void => {
 
 const getAndTreatToken = async (username: string): Promise<{ token: string; publicKey: string }> => {
     const clientPublicKey = cryptService.getPublicKey();
+    const encryptublicKey = await UserService.getPublicKey();
+    cryptService.setEncryptKey(encryptublicKey);
     const { token: userToken, publicKey: serverPublicKey } = await UserService.getToken(clientPublicKey);
     const token = cryptService.decrypt(userToken);
     return {
@@ -65,13 +67,19 @@ const getAndTreatToken = async (username: string): Promise<{ token: string; publ
 };
 
 let retries = 0;
+const RECONNECTION_MAX_RETRIES = 60;
+const RECONNECTION_DELAY_MSEC = 5000;
 const retryInitUserSocketConnection = (username: string): void => {
-    if (retries < 5) {
+    if (retries < RECONNECTION_MAX_RETRIES) {
         retries += 1;
         setTimeout(async (): Promise<void> => {
-            const { token, publicKey } = await getAndTreatToken(username);
-            connectToSocket(token, publicKey);
-        }, 5000);
+            try {
+                const { token, publicKey } = await getAndTreatToken(username);
+                connectToSocket(token, publicKey);
+            } catch (error) {
+                setTimeout(() => retryInitUserSocketConnection(username), RECONNECTION_DELAY_MSEC);
+            }
+        }, RECONNECTION_DELAY_MSEC);
     }
 };
 
@@ -80,4 +88,7 @@ export const initUserSocketConnection = async (username: string): Promise<void> 
     connectToSocket(token, publicKey);
 
     socket.on('disconnect', () => retryInitUserSocketConnection(username));
+    socket.on('disconnect', () => {
+        retries = 0;
+    });
 };
