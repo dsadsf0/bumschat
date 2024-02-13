@@ -1,4 +1,4 @@
-import { Injectable, ConsoleLogger, LogLevel } from '@nestjs/common';
+import { Injectable, ConsoleLogger, LogLevel, HttpException } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import utcDayjs from 'src/core/utils/utcDayjs';
 
@@ -84,7 +84,22 @@ export class SnatchedLogger extends ConsoleLogger {
     }
 
     private treatTextMessage(message: unknown): string {
-        return typeof message === 'string' ? message : this.stringify(message);
+        if (typeof message === 'string') {
+            return message;
+        }
+        if (message instanceof HttpException) {
+            return this.stringify(message);
+        }
+        if (message instanceof Error) {
+            const logId = (message as unknown as { id: string })?.id || null;
+
+            return this.stringify({
+                name: message.name,
+                message: message.message,
+                id: logId,
+            });
+        }
+        return this.stringify(message);
     }
 
     private treatLogMessage(message: unknown): string {

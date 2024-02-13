@@ -10,12 +10,12 @@ import {
 } from '@nestjs/websockets';
 import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets/errors/ws-exception';
-import handleError from 'src/core/utils/errorHandler';
 import { config } from 'dotenv';
 import { SocketService } from './socket.service';
 import { SocketClient, SocketServer } from './types/socket.type';
 import { MessageContext, MessagePayload } from '../chat-message/types/message.type';
 import { UserGetRdo } from '../user/rdo/get-user.rdo';
+import { ErrorHandler } from 'src/core/decorators/errorHandler.decorator';
 config({ path: `.${process.env.NODE_ENV}.env` });
 
 const SOCKET_PORT = Number(process.env.SOCKET_PORT);
@@ -65,69 +65,55 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
         };
     }
 
+    @ErrorHandler(SocketGateway.name)
     public async handleConnection(client: SocketClient): Promise<void> {
         const loggerContext = `${SocketGateway.name}/${this.handleConnection.name}`;
 
-        try {
-            const user = client.data.user;
+        const user = client.data.user;
 
-            if (!user) {
-                throw new WsException(`Client with id: ${client.id} disconnected! Unauthorized.`);
-            }
-
-            this.logger.info(`New connection ${user.username} with socket id: ${client.id}!`, loggerContext, {
-                logEntityId: user.id,
-                tagInMessage: user.username,
-            });
-
-            const userChats = client.data.user.chats;
-
-            if (!userChats.length) {
-                return;
-            }
-
-            client.join(userChats);
-        } catch (error) {
-            this.logger.error(error, loggerContext);
-            client.disconnect();
+        if (!user) {
+            throw new WsException(`Client with id: ${client.id} disconnected! Unauthorized.`);
         }
+
+        this.logger.info(`New connection ${user.username} with socket id: ${client.id}!`, loggerContext, {
+            logEntityId: user.id,
+            tagInMessage: user.username,
+        });
+
+        const userChats = client.data.user.chats;
+
+        if (!userChats.length) {
+            return;
+        }
+
+        client.join(userChats);
     }
 
+    @ErrorHandler(SocketGateway.name)
     public async handleDisconnect(client: SocketClient): Promise<void> {
         const loggerContext = `${SocketGateway.name}/${this.handleDisconnect.name}`;
 
-        try {
-            const { user } = client.data;
+        const { user } = client.data;
 
-            if (user) {
-                this.logger.info(`Disconnected ${user.username} with socket id: ${client.id}!`, loggerContext, {
-                    logEntityId: user.id,
-                    tagInMessage: user.username,
-                });
-            }
-        } catch (error) {
-            this.logger.error(error, loggerContext);
-            handleError(error);
+        if (user) {
+            this.logger.info(`Disconnected ${user.username} with socket id: ${client.id}!`, loggerContext, {
+                logEntityId: user.id,
+                tagInMessage: user.username,
+            });
         }
     }
 
     @SubscribeMessage('chat-message')
+    @ErrorHandler(SocketGateway.name)
     public async message(@MessageBody() ctx: MessagePayload, @ConnectedSocket() client: SocketClient): Promise<void> {
-        const loggerContext = `${SocketGateway.name}/${this.message.name}`;
+        const msgContext = this.adapterToMessageContext(ctx, client.data.user);
+        const treatedMessage = await this.socketService.treatMessage(msgContext);
 
-        try {
-            const msgContext = this.adapterToMessageContext(ctx, client.data.user);
-            const treatedMessage = await this.socketService.treatMessage(msgContext);
+        const groupUsers = await this.server.in(ctx.chat.id).fetchSockets();
 
-            const groupUsers = await this.server.in(ctx.chat.id).fetchSockets();
-
-            for (const chatUser of groupUsers) {
-                const userMessageRdo = this.socketService.encryptMessageRdo(treatedMessage, chatUser.data.publicKey);
-                this.server.to(chatUser.id).emit('chat-message', userMessageRdo);
-            }
-        } catch (error) {
-            this.logger.error(error, loggerContext);
-            handleError(error);
+        for (const chatUser of groupUsers) {
+            const userMessageRdo = this.socketService.encryptMessageRdo(treatedMessage, chatUser.data.publicKey);
+            this.server.to(chatUser.id).emit('chat-message', userMessageRdo);
         }
     }
 }

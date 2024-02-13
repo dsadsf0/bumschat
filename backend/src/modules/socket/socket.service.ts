@@ -1,20 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { CryptoService } from '../crypto/crypto.service';
-import { SnatchedLogger } from '../../core/services/snatched-logger/logger.service';
 import { WsException } from '@nestjs/websockets';
 import { SocketClient } from './types/socket.type';
-import handleError from 'src/core/utils/errorHandler';
 import { ChatMessageService } from '../chat-message/chat-message.service';
 import { MessageContext, MessageRdo } from '../chat-message/types/message.type';
+import { ErrorHandler } from 'src/core/decorators/errorHandler.decorator';
 
 @Injectable()
 export class SocketService {
     constructor(
         private readonly userService: UserService,
         private readonly chatMessageService: ChatMessageService,
-        private readonly crypt: CryptoService,
-        private readonly logger: SnatchedLogger
+        private readonly crypt: CryptoService
     ) {}
 
     public async authMiddleware(client: SocketClient): Promise<void> {
@@ -53,50 +51,33 @@ export class SocketService {
         client.data.user.chats = ['mock-id'];
     }
 
+    @ErrorHandler(SocketService.name)
     private decryptMessageContext(ctx: MessageContext): MessageContext {
-        const loggerContext = `${SocketService.name}/${this.decryptMessageContext.name}`;
-        try {
-            return {
-                ...ctx,
-                message: {
-                    ...ctx.message,
-                    text: this.crypt.decrypt(ctx.message.text),
-                },
-            };
-        } catch (error) {
-            this.logger.error(error, loggerContext);
-            handleError(error);
-        }
+        return {
+            ...ctx,
+            message: {
+                ...ctx.message,
+                text: this.crypt.decrypt(ctx.message.text),
+            },
+        };
     }
 
+    @ErrorHandler(SocketService.name)
     public async treatMessage(ctx: MessageContext): Promise<MessageRdo> {
-        const loggerContext = `${SocketService.name}/${this.treatMessage.name}`;
+        const decryptedMsgContext = this.decryptMessageContext(ctx);
+        const treatedMessage = await this.chatMessageService.treatMessage(decryptedMsgContext);
 
-        try {
-            const decryptedMsgContext = this.decryptMessageContext(ctx);
-            const treatedMessage = await this.chatMessageService.treatMessage(decryptedMsgContext);
-
-            return treatedMessage;
-        } catch (error) {
-            this.logger.error(error, loggerContext);
-            handleError(error);
-        }
+        return treatedMessage;
     }
 
+    @ErrorHandler(SocketService.name)
     public encryptMessageRdo(msg: MessageRdo, userPublicKey: string): MessageRdo {
-        const loggerContext = `${SocketService.name}/${this.encryptMessageRdo.name}`;
-
-        try {
-            return {
-                ...msg,
-                message: {
-                    ...msg.message,
-                    text: this.crypt.encrypt(msg.message.text, userPublicKey),
-                },
-            };
-        } catch (error) {
-            this.logger.error(error, loggerContext);
-            handleError(error);
-        }
+        return {
+            ...msg,
+            message: {
+                ...msg.message,
+                text: this.crypt.encrypt(msg.message.text, userPublicKey),
+            },
+        };
     }
 }
