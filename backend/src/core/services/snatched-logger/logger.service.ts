@@ -91,12 +91,9 @@ export class SnatchedLogger extends ConsoleLogger {
             return this.stringify(message);
         }
         if (message instanceof Error) {
-            const logId = (message as unknown as { id: string })?.id || null;
-
             return this.stringify({
                 name: message.name,
                 message: message.message,
-                id: logId,
             });
         }
         return this.stringify(message);

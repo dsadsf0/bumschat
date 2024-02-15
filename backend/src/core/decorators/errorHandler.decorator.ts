@@ -1,12 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import * as uuid from 'uuid';
 import { SnatchedLogger } from '../services/snatched-logger/logger.service';
 
 const logger = new SnatchedLogger();
-
-type ErrorWithId = {
-    id: string;
-};
 
 const handleError = (error: unknown): HttpException => {
     if (error instanceof HttpException) {
@@ -21,17 +16,12 @@ const handleError = (error: unknown): HttpException => {
 export function ErrorHandler(serviceName: string): MethodDecorator {
     return function (_target: unknown, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
         const originalMethod = descriptor.value;
-        descriptor.value = function (...args: unknown[]): unknown {
+        descriptor.value = async function (...args: unknown[]): Promise<unknown> {
             try {
-                return originalMethod.apply(this, args);
+                return await originalMethod.apply(this, args);
             } catch (error) {
-                const treatedError = error as ErrorWithId;
-                if (typeof error === 'object') {
-                    treatedError.id = treatedError.id ?? uuid.v4();
-                }
-
-                logger.error(treatedError, `${serviceName}/${propertyKey.toString()}`);
-                handleError(treatedError);
+                logger.error(error, `${serviceName}/${propertyKey.toString()}`);
+                handleError(error);
             }
         };
     };
